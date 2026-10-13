@@ -20,11 +20,17 @@ class WorkspaceMemberController extends Controller
             return back()->with('error', 'عذراً، لا توجد محفظة مرتبطة بحسابك الحالي.');
         }
 
+        if ($request->filled('phone')) {
+            $request->merge([
+                'phone' => preg_replace('/[^\d]/', '', (string) $request->input('phone')),
+            ]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'username' => 'required|string|alpha_dash|max:50|unique:users,username',
             'email' => 'required|email|max:150|unique:users,email',
-            'phone' => 'nullable|string|max:30|unique:users,phone',
+            'phone' => ['nullable', 'string', 'regex:/^(056|059)[0-9]{7}$/', 'unique:users,phone'],
             'password' => ['required', 'string', 'confirmed', Password::min(9)->mixedCase()->numbers()],
         ], [
             'name.required' => 'اسم الشريك / الفرد مطلوب',
@@ -32,6 +38,7 @@ class WorkspaceMemberController extends Controller
             'username.unique' => 'اسم الدخول هذا مستخدم بالفعل، يرجى اختيار اسم آخر',
             'email.required' => 'البريد الإلكتروني مطلوب',
             'email.unique' => 'البريد الإلكتروني هذا مستخدم بالفعل',
+            'phone.regex' => 'رقم الجوال يجب أن يبدأ بـ 056 أو 059 ومكون من 10 أرقام فقط (مثال: 0599123456)',
             'phone.unique' => 'رقم الجوال هذا مسجل لمستخدم آخر',
             'password.required' => 'كلمة المرور مطلوبة',
             'password.min' => 'يجب ألا تقل كلمة المرور عن 9 خانات',
@@ -40,7 +47,7 @@ class WorkspaceMemberController extends Controller
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
         ]);
 
-        $cleanPhone = $validated['phone'] ? preg_replace('/[^\d+]/', '', $validated['phone']) : null;
+        $cleanPhone = $validated['phone'] ? preg_replace('/[^\d]/', '', $validated['phone']) : null;
 
         $member = User::create([
             'name' => $validated['name'],

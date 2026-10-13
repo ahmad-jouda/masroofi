@@ -251,7 +251,8 @@
                 </div>
                 <div class="form-group">
                     <label>رقم الجوال (للدخول به):</label>
-                    <input type="text" name="phone" class="styled-input" placeholder="0599123456">
+                    <input type="tel" name="phone" class="styled-input" placeholder="0599123456 أو 056..." maxlength="10" pattern="^(056|059)[0-9]{7}$" title="رقم الجوال يجب أن يبدأ بـ 056 أو 059 ومكون من 10 أرقام فقط" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
+                    <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 4px;">يبدأ بـ 056 أو 059 ومكون من 10 أرقام فقط (مثال: 0599123456).</div>
                 </div>
             </div>
 
@@ -391,7 +392,8 @@
                 </div>
                 <div class="form-group">
                     <label>رقم الجوال:</label>
-                    <input type="text" name="phone" id="editUserPhone" class="styled-input">
+                    <input type="tel" name="phone" id="editUserPhone" class="styled-input" placeholder="0599123456" maxlength="10" pattern="^(056|059)[0-9]{7}$" title="رقم الجوال يجب أن يبدأ بـ 056 أو 059 ومكون من 10 أرقام فقط" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
+                    <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 4px;">يبدأ بـ 056 أو 059 ومكون من 10 أرقام فقط.</div>
                 </div>
             </div>
 

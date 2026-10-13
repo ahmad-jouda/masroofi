@@ -30,11 +30,17 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->filled('phone')) {
+            $request->merge([
+                'phone' => preg_replace('/[^\d]/', '', (string) $request->input('phone')),
+            ]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'username' => 'required|string|alpha_dash|max:50|unique:users,username',
             'email' => 'required|email|max:150|unique:users,email',
-            'phone' => 'nullable|string|max:30|unique:users,phone',
+            'phone' => ['nullable', 'string', 'regex:/^(056|059)[0-9]{7}$/', 'unique:users,phone'],
             'password' => ['required', 'string', 'confirmed', Password::min(9)->mixedCase()->numbers()],
             'role' => 'required|in:admin,member',
             'workspace_mode' => 'required|in:existing,new',
@@ -46,6 +52,7 @@ class UserController extends Controller
             'username.unique' => 'اسم الدخول هذا مستخدم بالفعل',
             'email.required' => 'البريد الإلكتروني مطلوب',
             'email.unique' => 'البريد الإلكتروني هذا مستخدم بالفعل',
+            'phone.regex' => 'رقم الجوال يجب أن يبدأ بـ 056 أو 059 ومكون من 10 أرقام فقط (مثال: 0599123456)',
             'phone.unique' => 'رقم الجوال هذا مسجل لمستخدم آخر',
             'password.required' => 'كلمة المرور مطلوبة',
             'password.min' => 'يجب ألا تقل كلمة المرور عن 9 خانات',
@@ -119,11 +126,17 @@ class UserController extends Controller
             $request->merge(['role' => 'admin']);
         }
 
+        if ($request->filled('phone')) {
+            $request->merge([
+                'phone' => preg_replace('/[^\d]/', '', (string) $request->input('phone')),
+            ]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'username' => 'required|string|alpha_dash|max:50|unique:users,username,'.$user->id,
             'email' => 'required|email|max:150|unique:users,email,'.$user->id,
-            'phone' => 'nullable|string|max:30|unique:users,phone,'.$user->id,
+            'phone' => ['nullable', 'string', 'regex:/^(056|059)[0-9]{7}$/', 'unique:users,phone,'.$user->id],
             'role' => 'required|in:admin,member',
             'workspace_id' => 'required|exists:workspaces,id',
             'password' => ['nullable', 'string', 'confirmed', Password::min(9)->mixedCase()->numbers()],
@@ -133,6 +146,7 @@ class UserController extends Controller
             'username.unique' => 'اسم الدخول هذا مستخدم بالفعل',
             'email.required' => 'البريد الإلكتروني مطلوب',
             'email.unique' => 'البريد الإلكتروني هذا مستخدم بالفعل',
+            'phone.regex' => 'رقم الجوال يجب أن يبدأ بـ 056 أو 059 ومكون من 10 أرقام فقط (مثال: 0599123456)',
             'phone.unique' => 'رقم الجوال هذا مسجل لمستخدم آخر',
             'password.min' => 'يجب ألا تقل كلمة المرور عن 9 خانات',
             'password.mixed' => 'يجب أن تحتوي كلمة المرور على أحرف كبيرة (A-Z) وأحرف صغيرة (a-z)',

@@ -137,4 +137,70 @@ class WorkspaceMemberTest extends TestCase
         ]);
         $resp4->assertSessionHasErrors('password');
     }
+
+    public function test_workspace_member_phone_must_start_with_056_or_059_and_be_10_digits(): void
+    {
+        $workspace = Workspace::create(['name' => 'محفظة الاختبار']);
+        $owner = User::factory()->create([
+            'role' => 'member',
+            'workspace_id' => $workspace->id,
+        ]);
+
+        // 1. Valid 059 phone (10 digits) succeeds
+        $respValid059 = $this->actingAs($owner)->post(route('workspace.members.store'), [
+            'name' => 'عضو 1',
+            'username' => 'member059',
+            'email' => 'm059@example.com',
+            'phone' => '0599123456',
+            'password' => 'SecretPass123',
+            'password_confirmation' => 'SecretPass123',
+        ]);
+        $respValid059->assertSessionHas('success');
+        $this->assertDatabaseHas('users', ['phone' => '0599123456']);
+
+        // 2. Valid 056 phone (10 digits) succeeds
+        $respValid056 = $this->actingAs($owner)->post(route('workspace.members.store'), [
+            'name' => 'عضو 2',
+            'username' => 'member056',
+            'email' => 'm056@example.com',
+            'phone' => '0568123456',
+            'password' => 'SecretPass123',
+            'password_confirmation' => 'SecretPass123',
+        ]);
+        $respValid056->assertSessionHas('success');
+        $this->assertDatabaseHas('users', ['phone' => '0568123456']);
+
+        // 3. Invalid prefix (058) fails
+        $respInvalidPrefix = $this->actingAs($owner)->post(route('workspace.members.store'), [
+            'name' => 'عضو غير صالح',
+            'username' => 'invalidprefix',
+            'email' => 'invp@example.com',
+            'phone' => '0581234567',
+            'password' => 'SecretPass123',
+            'password_confirmation' => 'SecretPass123',
+        ]);
+        $respInvalidPrefix->assertSessionHasErrors('phone');
+
+        // 4. Invalid length (less than 10 digits) fails
+        $respTooShort = $this->actingAs($owner)->post(route('workspace.members.store'), [
+            'name' => 'عضو قصير',
+            'username' => 'tooshort',
+            'email' => 'short@example.com',
+            'phone' => '05912345',
+            'password' => 'SecretPass123',
+            'password_confirmation' => 'SecretPass123',
+        ]);
+        $respTooShort->assertSessionHasErrors('phone');
+
+        // 5. Invalid length (more than 10 digits) fails
+        $respTooLong = $this->actingAs($owner)->post(route('workspace.members.store'), [
+            'name' => 'عضو طويل',
+            'username' => 'toolong',
+            'email' => 'long@example.com',
+            'phone' => '05912345678',
+            'password' => 'SecretPass123',
+            'password_confirmation' => 'SecretPass123',
+        ]);
+        $respTooLong->assertSessionHasErrors('phone');
+    }
 }
