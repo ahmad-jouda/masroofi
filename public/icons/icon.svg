@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="pwaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer Rounded Container -->
+  <rect x="16" y="16" width="480" height="480" rx="110" fill="#111827" filter="url(#shadow)"/>
+  <rect x="28" y="28" width="456" height="456" rx="98" fill="url(#pwaGrad)" opacity="0.15"/>
+  <rect x="30" y="30" width="452" height="452" rx="96" fill="none" stroke="url(#pwaGrad)" stroke-width="6"/>
+  
+  <!-- Central Glowing Shield / Wallet Icon -->
+  <circle cx="256" cy="256" r="140" fill="url(#pwaGrad)" filter="url(#shadow)"/>
+  
+  <!-- Coin emblem -->
+  <circle cx="256" cy="256" r="80" fill="url(#goldGrad)"/>
+  
+  <!-- Currency / Shekel symbol motif -->
+  <path d="M256 200v112M226 230h60M226 282h60" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Sparkle stars -->
+  <path d="M370 140l8 24 24 8-24 8-8 24-8-24-24-8 24-8z" fill="#fbbf24"/>
+  <path d="M140 350l6 18 18 6-18 6-6 18-6-18-18-6 18-6z" fill="#10b981"/>
+</svg>
