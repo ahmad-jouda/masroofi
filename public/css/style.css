@@ -3576,6 +3576,58 @@ body.theme-light select option {
   margin-right: 0.35rem;
 }
 
+/* ========================================================
+   Password Visibility Eye Toggle Component
+======================================================== */
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-wrap input {
+  width: 100% !important;
+  padding-left: 2.75rem !important; /* Space for the eye icon in RTL */
+  box-sizing: border-box;
+}
+
+.btn-password-toggle {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  z-index: 2;
+  user-select: none;
+}
+
+.btn-password-toggle:hover {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.btn-password-toggle:focus {
+  outline: none;
+  color: #10b981;
+}
+
+.btn-password-toggle svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2.1;
+  display: block;
+}
+
 
 
 

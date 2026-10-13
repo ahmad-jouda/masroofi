@@ -258,12 +258,22 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>كلمة المرور الأولية: *</label>
-                    <input type="password" name="password" class="styled-input" required placeholder="•••••••• (9 خانات، أحرف A-z وأرقام)">
+                    <div class="password-input-wrap">
+                        <input type="password" name="password" id="createPassword" class="styled-input" required placeholder="•••••••• (9 خانات، أحرف A-z وأرقام)">
+                        <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('createPassword', this)" title="إظهار كلمة المرور" aria-label="إظهار كلمة المرور">
+                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                     <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 4px;">يجب ألا تقل عن 9 خانات وتحتوي على أرقام وأحرف كبيرة وصغيرة (A-Z, a-z, 0-9).</div>
                 </div>
                 <div class="form-group">
                     <label>تأكيد كلمة المرور: *</label>
-                    <input type="password" name="password_confirmation" class="styled-input" required placeholder="••••••••">
+                    <div class="password-input-wrap">
+                        <input type="password" name="password_confirmation" id="createPasswordConfirm" class="styled-input" required placeholder="••••••••">
+                        <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('createPasswordConfirm', this)" title="إظهار كلمة المرور" aria-label="إظهار كلمة المرور">
+                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -417,11 +427,21 @@
                 </label>
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="password" name="password" class="styled-input" placeholder="كلمة المرور الجديدة (9 خانات، أحرف A-z وأرقام)">
+                        <div class="password-input-wrap">
+                            <input type="password" name="password" id="editPassword" class="styled-input" placeholder="كلمة المرور الجديدة (9 خانات، أحرف A-z وأرقام)">
+                            <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('editPassword', this)" title="إظهار كلمة المرور" aria-label="إظهار كلمة المرور">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
                         <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 4px;">يجب ألا تقل عن 9 خانات وتحتوي على أرقام وأحرف كبيرة وصغيرة (A-Z, a-z, 0-9).</div>
                     </div>
                     <div class="form-group">
-                        <input type="password" name="password_confirmation" class="styled-input" placeholder="تأكيد كلمة المرور الجديدة">
+                        <div class="password-input-wrap">
+                            <input type="password" name="password_confirmation" id="editPasswordConfirm" class="styled-input" placeholder="تأكيد كلمة المرور الجديدة">
+                            <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('editPasswordConfirm', this)" title="إظهار كلمة المرور" aria-label="إظهار كلمة المرور">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

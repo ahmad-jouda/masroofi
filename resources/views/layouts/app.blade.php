@@ -513,10 +513,10 @@
                         <label style="display: block; font-size: 0.76rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">
                             أدخل كلمة مرور حسابك الحالية:
                         </label>
-                        <div style="position: relative;">
-                            <input type="password" name="current_password" id="inputCurrentPassword" class="styled-input" style="width: 100%; padding-left: 2.5rem;" placeholder="كلمة المرور الحالية">
-                            <button type="button" onclick="togglePasswordVisibility('inputCurrentPassword', this)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1rem;">
-                                👁️
+                        <div class="password-input-wrap">
+                            <input type="password" name="current_password" id="inputCurrentPassword" class="styled-input" placeholder="كلمة المرور الحالية">
+                            <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('inputCurrentPassword', this)" title="إظهار كلمة المرور" aria-label="إظهار كلمة المرور">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                         </div>
                     </div>
@@ -702,12 +702,22 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>كلمة المرور الأولية: *</label>
-                                <input type="password" name="password" class="styled-input" required placeholder="•••••••• (9 خانات، أحرف A-z وأرقام)">
+                                <div class="password-input-wrap">
+                                    <input type="password" name="password" id="familyMemberPassword" class="styled-input" required placeholder="•••••••• (9 خانات، أحرف A-z وأرقام)">
+                                    <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('familyMemberPassword', this)" title="إظهار كلمة المرور" aria-label="إظهار كلمة المرور">
+                                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </button>
+                                </div>
                                 <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 4px;">يجب ألا تقل عن 9 خانات وتحتوي على أرقام وأحرف كبيرة وصغيرة (A-Z, a-z, 0-9).</div>
                             </div>
                             <div class="form-group">
                                 <label>تأكيد كلمة المرور: *</label>
-                                <input type="password" name="password_confirmation" class="styled-input" required placeholder="••••••••">
+                                <div class="password-input-wrap">
+                                    <input type="password" name="password_confirmation" id="familyMemberPasswordConfirm" class="styled-input" required placeholder="••••••••">
+                                    <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('familyMemberPasswordConfirm', this)" title="إظهار كلمة المرور" aria-label="إظهار كلمة المرور">
+                                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1166,6 +1176,20 @@
     </div>
 
     <script>
+        window.togglePasswordVisibility = function(inputId, btn) {
+            const input = typeof inputId === 'string' ? document.getElementById(inputId) : inputId;
+            if (!input) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            if (btn) {
+                const eyeOpen = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+                const eyeOff = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`;
+                btn.innerHTML = isPassword ? eyeOff : eyeOpen;
+                btn.title = isPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور';
+                btn.setAttribute('aria-label', btn.title);
+            }
+        };
+
         window.showCustomConfirm = function({
             title = 'تأكيد الحذف',
             message = 'هل أنت متأكد من حذف هذه المعاملة؟',
