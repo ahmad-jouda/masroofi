@@ -21,6 +21,13 @@ class TransactionController extends Controller
             'note' => 'nullable|string|max:255',
         ]);
 
+        if ($validated['type'] !== 'savings') {
+            $validated['goal_id'] = null;
+        }
+        if ($validated['type'] === 'income') {
+            $validated['envelope_id'] = null;
+        }
+
         $tx = Transaction::create($validated);
 
         if ($tx->type === 'savings' && $tx->goal_id) {
@@ -48,6 +55,13 @@ class TransactionController extends Controller
             'payment_method' => 'required|in:card,cash,transfer,credit',
             'note' => 'nullable|string|max:255',
         ]);
+
+        if ($validated['type'] !== 'savings') {
+            $validated['goal_id'] = null;
+        }
+        if ($validated['type'] === 'income') {
+            $validated['envelope_id'] = null;
+        }
 
         DB::transaction(function () use ($validated, $transaction) {
             // Revert old saving goal if was savings
@@ -94,11 +108,13 @@ class TransactionController extends Controller
 
         DB::transaction(function () use ($validated, &$created) {
             foreach ($validated['transactions'] as $txData) {
+                $isSavings = ($txData['type'] === 'savings');
+                $isIncome = ($txData['type'] === 'income');
                 $tx = Transaction::create([
                     'type' => $txData['type'],
                     'amount' => $txData['amount'],
-                    'envelope_id' => $txData['envelope_id'] ?? null,
-                    'goal_id' => $txData['goal_id'] ?? null,
+                    'envelope_id' => ! $isIncome ? ($txData['envelope_id'] ?? null) : null,
+                    'goal_id' => $isSavings ? ($txData['goal_id'] ?? null) : null,
                     'date' => $txData['date'],
                     'payment_method' => $txData['payment_method'],
                     'note' => $txData['note'] ?? null,

@@ -1,13 +1,13 @@
 {
-  "name": "مصروفي Pro - نظام الإدارة المالية والتحويش",
+  "name": "مصروفي Pro",
   "short_name": "مصروفي Pro",
-  "description": "نظام الإدارة المالية الذكي، تتبع المصاريف، المحافظ الحية، والأظرف والتحويش",
+  "description": "نظام إدارة المصاريف والمحفظة الذكية والأظرف والتحويش",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#111827",
-  "theme_color": "#10b981",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
   "lang": "ar",
   "dir": "rtl",
   "categories": ["finance", "productivity", "utilities"],
@@ -16,19 +16,24 @@
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ]
 }

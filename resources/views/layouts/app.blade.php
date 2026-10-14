@@ -2,20 +2,20 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="app-currency" content="{{ $settings->currency ?? 'ILS' }}">
     <title>{{ config('app.name', 'مصروفي Pro') }} - إدارة المصاريف والتحويش الذكي</title>
     
     <!-- PWA & Mobile Web App Meta Tags -->
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <meta name="theme-color" content="#10b981">
+    <meta name="theme-color" content="#090d16">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="مصروفي Pro">
-    <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
-    <link rel="icon" type="image/svg+xml" href="{{ asset('icons/icon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('icons/icon-192.png') }}">
     <link rel="shortcut icon" href="{{ asset('icons/icon-192.png') }}">
 
     <!-- Google Fonts -->
@@ -311,28 +311,34 @@
         @else
         <nav class="main-tabs-bar" id="mainTabsNav">
             <button class="tab-btn {{ ($activeTab ?? 'tab-dashboard') === 'tab-dashboard' ? 'active' : '' }}" data-tab="tab-dashboard" id="tabBtnDashboard">
-                <span>📊</span>
-                <span>الرئيسية واليومي</span>
+                <span class="tab-icon">📊</span>
+                <span class="tab-label-full">الرئيسية واليومي</span>
+                <span class="tab-label-short">الرئيسية</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-envelopes' ? 'active' : '' }}" data-tab="tab-envelopes" id="tabBtnEnvelopes">
-                <span>✉️</span>
-                <span>الميزانية والأظرف</span>
+                <span class="tab-icon">✉️</span>
+                <span class="tab-label-full">الميزانية والأظرف</span>
+                <span class="tab-label-short">الأظرف</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-goals' ? 'active' : '' }}" data-tab="tab-goals" id="tabBtnGoals">
-                <span>🎯</span>
-                <span>صناديق التحويش</span>
+                <span class="tab-icon">🎯</span>
+                <span class="tab-label-full">صناديق التحويش</span>
+                <span class="tab-label-short">التحويش</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-leaks' ? 'active' : '' }}" data-tab="tab-leaks" id="tabBtnLeaks">
-                <span>⚡</span>
-                <span>كاشف الهدر والتسريبات</span>
+                <span class="tab-icon">⚡</span>
+                <span class="tab-label-full">كاشف الهدر والتسريبات</span>
+                <span class="tab-label-short">الهدر</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-ledger' ? 'active' : '' }}" data-tab="tab-ledger" id="tabBtnLedger">
-                <span>📝</span>
-                <span>سجل المعاملات</span>
+                <span class="tab-icon">📝</span>
+                <span class="tab-label-full">سجل المعاملات</span>
+                <span class="tab-label-short">السجل</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-debts' ? 'active' : '' }}" data-tab="tab-debts" id="tabBtnDebts">
-                <span>📑</span>
-                <span>دفتر الديون (شكك/سلف)</span>
+                <span class="tab-icon">📑</span>
+                <span class="tab-label-full">دفتر الديون (شكك/سلف)</span>
+                <span class="tab-label-short">الديون</span>
                 @if(isset($totalDebtsOwed) && $totalDebtsOwed > 0)
                     <span class="tab-alert-badge" title="إجمالي الديون المستحقة للسداد">{{ number_format($totalDebtsOwed, 0) }}</span>
                 @endif

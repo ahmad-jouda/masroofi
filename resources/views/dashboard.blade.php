@@ -373,11 +373,11 @@
                 <div class="tx-item">
                     <div class="tx-item-left">
                         <div class="tx-category-icon">
-                            {{ $tx->goal ? $tx->goal->icon : ($tx->envelope ? $tx->envelope->icon : '💸') }}
+                            {{ ($tx->type === 'savings' && $tx->goal) ? $tx->goal->icon : ($tx->envelope ? $tx->envelope->icon : '💸') }}
                         </div>
                         <div class="tx-details">
-                            <span class="tx-name">{{ $tx->note ?? ($tx->goal ? 'إيداع: '.$tx->goal->name : ($tx->envelope ? $tx->envelope->name : 'معاملة')) }}</span>
-                            <span class="tx-meta">{{ $tx->goal ? 'حصالة: '.$tx->goal->name : ($tx->envelope ? $tx->envelope->name : 'عام') }} • {{ $tx->date->format('Y-m-d') }} @if($tx->user) • 👤 {{ $tx->user->name }} @endif</span>
+                            <span class="tx-name">{{ $tx->note ?? (($tx->type === 'savings' && $tx->goal) ? 'إيداع: '.$tx->goal->name : ($tx->envelope ? $tx->envelope->name : 'معاملة')) }}</span>
+                            <span class="tx-meta">{{ ($tx->type === 'savings' && $tx->goal) ? 'حصالة: '.$tx->goal->name : ($tx->envelope ? $tx->envelope->name : 'عام') }} • {{ $tx->date->format('Y-m-d') }} @if($tx->user) • 👤 {{ $tx->user->name }} @endif</span>
                         </div>
                     </div>
                     <div class="tx-item-right">
@@ -1052,7 +1052,7 @@
                             @else <span style="color:#f59e0b; font-weight:700">🔵 تحويل لحصالة</span>
                             @endif
                         </td>
-                        <td><strong>{{ $tx->goal ? '🎯 '.$tx->goal->name : ($tx->envelope ? $tx->envelope->icon.' '.$tx->envelope->name : 'عام') }}</strong></td>
+                        <td><strong>{{ ($tx->type === 'savings' && $tx->goal) ? '🎯 '.$tx->goal->name : ($tx->envelope ? $tx->envelope->icon.' '.$tx->envelope->name : 'عام') }}</strong></td>
                         <td>
                             {{ $tx->note ?? '—' }}
                             @if($tx->user)
@@ -1355,7 +1355,8 @@
 
             <div class="form-group hidden" id="txGoalGroup">
                 <label>هدف التحويش:</label>
-                <select name="goal_id" class="styled-select">
+                <select name="goal_id" id="txGoalSelect" class="styled-select" disabled>
+                    <option value="">-- اختر الهدف --</option>
                     @foreach($goals as $g)
                         <option value="{{ $g->id }}">{{ $g->icon }} {{ $g->name }}</option>
                     @endforeach
@@ -1590,15 +1591,17 @@
             <button class="modal-close-btn" onclick="closeModal('salarySettingsModal')">&times;</button>
         </div>
 
-        <div style="padding: 1.25rem 1.75rem 0.5rem 1.75rem;">
+        <div class="modal-subtabs-wrap">
             <div class="salary-tabs-switcher">
                 <button type="button" class="salary-tab-btn active" id="tabBtnSalariesList" onclick="switchSalarySubTab('list')">
                     <span>💼</span>
-                    <span>مصادر الرواتب والتدفقات ({{ $salarySources->count() }})</span>
+                    <span class="tab-txt-full">مصادر الرواتب والتدفقات ({{ $salarySources->count() }})</span>
+                    <span class="tab-txt-short">مصادر الرواتب ({{ $salarySources->count() }})</span>
                 </button>
                 <button type="button" class="salary-tab-btn" id="tabBtnSalaryCycle" onclick="switchSalarySubTab('cycle')">
                     <span>📅</span>
-                    <span>ضبط الدورة الشهرية والميزانية</span>
+                    <span class="tab-txt-full">ضبط الدورة الشهرية والميزانية</span>
+                    <span class="tab-txt-short">الدورة والميزانية</span>
                 </button>
             </div>
         </div>
@@ -2693,8 +2696,11 @@
         const noteInput = document.getElementById('txNoteInput');
         const noteLabel = document.getElementById('txNoteLabel');
 
+        const goalSelect = document.getElementById('txGoalSelect');
+
         if(type === 'savings') {
             goalGroup?.classList.remove('hidden');
+            if(goalSelect) goalSelect.disabled = false;
             envGroup?.classList.remove('hidden');
             if(incomeTags) incomeTags.style.display = 'none';
             if(noteLabel) noteLabel.textContent = 'ملاحظة الإيداع:';
@@ -2704,6 +2710,10 @@
         } else if(type === 'income') {
             envGroup?.classList.add('hidden');
             goalGroup?.classList.add('hidden');
+            if(goalSelect) {
+                goalSelect.disabled = true;
+                goalSelect.value = '';
+            }
             if(incomeTags) incomeTags.style.display = 'flex';
             if(noteLabel) noteLabel.textContent = 'مصدر الدخل / اليومية:';
             if(noteInput) noteInput.placeholder = 'اختر من الأزرار أو اكتب مصدر الدخل...';
@@ -2712,6 +2722,10 @@
         } else {
             envGroup?.classList.remove('hidden');
             goalGroup?.classList.add('hidden');
+            if(goalSelect) {
+                goalSelect.disabled = true;
+                goalSelect.value = '';
+            }
             if(incomeTags) incomeTags.style.display = 'none';
             if(noteLabel) noteLabel.textContent = 'ملاحظة / تفاصيل المصروف:';
             if(noteInput) noteInput.placeholder = 'مثال: مقاضي السوبرماركت، بنزين، قهوة...';
@@ -2797,16 +2811,24 @@
 
         const envGroup = document.getElementById('editTxEnvGroup');
         const goalGroup = document.getElementById('editTxGoalGroup');
+        const envSelect = document.getElementById('editTxEnvelopeSelect');
+        const goalSelect = document.getElementById('editTxGoalSelect');
 
         if (type === 'savings') {
             goalGroup?.classList.remove('hidden');
+            if (goalSelect) goalSelect.disabled = false;
             envGroup?.classList.add('hidden');
+            if (envSelect) envSelect.disabled = true;
         } else if (type === 'income') {
             envGroup?.classList.add('hidden');
             goalGroup?.classList.add('hidden');
+            if (envSelect) { envSelect.disabled = true; envSelect.value = ''; }
+            if (goalSelect) { goalSelect.disabled = true; goalSelect.value = ''; }
         } else {
             envGroup?.classList.remove('hidden');
+            if (envSelect) envSelect.disabled = false;
             goalGroup?.classList.add('hidden');
+            if (goalSelect) { goalSelect.disabled = true; goalSelect.value = ''; }
         }
     }
 
