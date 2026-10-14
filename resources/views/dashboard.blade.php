@@ -289,13 +289,15 @@
     <!-- SALARY INFLOW & STREAMS SCHEDULE -->
     <div class="salary-schedule-card">
         <div class="salary-schedule-header">
-            <div>
-                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.2rem 0;">
-                    <span>📅</span>
-                    <span>جدول مواعيد وتدفق الرواتب الشهرية</span>
-                    <span class="badge-pro" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;">{{ $salarySources->count() }} مصادر دخل</span>
+            <div style="min-width: 0; flex: 1;">
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; flex-wrap: wrap; gap: 0.45rem; margin: 0 0 0.25rem 0;">
+                    <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <span>📅</span>
+                        <span>جدول مواعيد وتدفق الرواتب الشهرية</span>
+                    </span>
+                    <span class="badge-pro" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; white-space: nowrap; flex-shrink: 0;">{{ $salarySources->count() }} مصادر دخل</span>
                 </h3>
-                <span style="font-size: 0.8rem; color: var(--text-secondary);">
+                <span style="font-size: 0.8rem; color: var(--text-secondary); display: block; line-height: 1.5;">
                     إجمالي الرواتب: <strong>{{ number_format($totalSalary, 0) }} {{ $settings->currency ?? 'ILS' }}</strong> (📱 تطبيق: {{ number_format($appSalariesTotal, 0) }} | 💵 كاش: {{ number_format($cashSalariesTotal, 0) }})
                 </span>
             </div>
@@ -307,20 +309,20 @@
         <div class="salary-timeline-items">
             @forelse($salarySources as $s)
                 <div class="salary-timeline-pill {{ $s->payment_method === 'cash' ? 'cash-pill' : '' }}">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--text-primary);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--text-primary); min-width: 0; word-break: break-word;">
                             {{ $s->payment_method === 'cash' ? '💵' : ($s->payment_method === 'card' ? '💳' : '📱') }} {{ $s->name }}
                         </span>
-                        <span class="salary-badge" style="font-size: 0.72rem; background: rgba(255,255,255,0.06); color: {{ $s->status_meta['color'] }};">
+                        <span class="salary-badge" style="font-size: 0.72rem; background: rgba(255,255,255,0.06); color: {{ $s->status_meta['color'] }}; white-space: nowrap; flex-shrink: 0;">
                             {{ $s->status_meta['badge'] }}
                         </span>
                     </div>
 
-                    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 0.25rem;">
-                        <span style="font-family: var(--font-numbers); font-weight: 800; font-size: 1.15rem; color: var(--text-primary);">
+                    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-top: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-family: var(--font-numbers); font-weight: 800; font-size: 1.15rem; color: var(--text-primary); white-space: nowrap;">
                             {{ number_format($s->amount, 0) }} {{ $s->currency }}
                         </span>
-                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-gold);">
+                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-gold); white-space: nowrap; flex-shrink: 0;">
                             📅 يوم {{ $s->day_of_month }} من الشهر
                         </span>
                     </div>
@@ -2788,7 +2790,11 @@
             if (typeof d === 'string') {
                 d = d.includes('T') ? d.split('T')[0] : d.substring(0, 10);
             }
-            dateInput.value = d || '';
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.setDate(d || '', true);
+            } else {
+                dateInput.value = d || '';
+            }
         }
 
         // Set Note

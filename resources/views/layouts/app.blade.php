@@ -26,6 +26,11 @@
     <!-- App CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
     
+    <!-- Flatpickr (Modern Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ar.js"></script>
+    
     <!-- Chart.js & Confetti CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
@@ -1362,6 +1367,49 @@
 
     <!-- Offline-First Client Engine -->
     <script src="{{ asset('js/offline-sync.js') }}"></script>
+
+    <!-- Flatpickr Masroofi Pro Initializer -->
+    <script>
+        const masroofiArabicLocale = {
+            firstDayOfWeek: 6, // السبت
+            weekdays: {
+                shorthand: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'],
+                longhand: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
+            },
+            months: {
+                shorthand: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+                longhand: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+            },
+            rangeSeparator: ' إلى '
+        };
+
+        window.initMasroofiDatepickers = function() {
+            if (typeof flatpickr === 'undefined') return;
+            document.querySelectorAll('input[type="date"]').forEach(function(el) {
+                if (el._flatpickr) return;
+                
+                const defaultVal = el.value || '';
+                
+                flatpickr(el, {
+                    disableMobile: true,
+                    locale: masroofiArabicLocale,
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'j F Y',
+                    altInputClass: el.className + ' flatpickr-custom-input',
+                    defaultDate: defaultVal ? defaultVal : undefined,
+                    prevArrow: '‹',
+                    nextArrow: '›',
+                    animate: true,
+                    monthSelectorType: 'static'
+                });
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.initMasroofiDatepickers();
+        });
+    </script>
 
     @stack('scripts')
 </body>
