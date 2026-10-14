@@ -253,13 +253,13 @@
                 <!-- Currency & Rates Group -->
                 <div class="currency-nav-group">
                     @php
-                        $curCode = $settings->currency ?? 'ILS';
-                        $targetCode = ($curCode === 'ILS') ? 'SAR' : 'ILS';
-                        $curRate = \App\Services\CurrencyService::getRate($curCode, $targetCode);
+                        $userCurr = $settings->currency ?? 'ILS';
+                        $targetCurr = ($userCurr === 'USD') ? 'ILS' : (($userCurr === 'ILS' || $userCurr === '₪') ? 'ILS' : $userCurr);
+                        $usdRate = \App\Services\CurrencyService::getRate('USD', $targetCurr);
                     @endphp
-                    <button type="button" class="rate-indicator-btn" onclick="openModal('currencyConverterModal')" title="محول العملات الذكي: اضغط للتحويل الفوري">
-                        <span class="rate-icon">💱</span>
-                        <span class="rate-value">1 {{ $curCode }} = {{ $curRate }} {{ $targetCode }}</span>
+                    <button type="button" class="rate-indicator-btn" onclick="openModal('currencyConverterModal')" title="سعر صرف الدولار المباشر مقابل {{ $targetCurr === 'ILS' ? 'الشيكل' : $targetCurr }}: اضغط للتحويل الفوري">
+                        <span class="rate-icon">💵</span>
+                        <span class="rate-value" id="topNavRateText">1 USD = {{ $usdRate }} {{ $targetCurr }}</span>
                     </button>
 
                     <form id="currencyForm" action="{{ route('settings.update') }}" method="POST" style="display:inline; margin: 0;">
@@ -511,14 +511,14 @@
                     <div class="form-group" style="flex: 1">
                         <label>من عملة:</label>
                         <select id="converterFrom" class="styled-select" onchange="runLiveConversion()">
-                            <option value="ILS" {{ ($settings->currency ?? 'ILS') == 'ILS' ? 'selected' : '' }}>🇵🇸 شيكل (ILS)</option>
-                            <option value="SAR" {{ ($settings->currency ?? 'ILS') == 'SAR' ? 'selected' : '' }}>🇸🇦 ريال (SAR)</option>
+                            <option value="USD" selected>🇺🇸 دولار (USD)</option>
+                            <option value="ILS">🇵🇸 شيكل (ILS)</option>
+                            <option value="SAR">🇸🇦 ريال (SAR)</option>
                             <option value="AED">🇦🇪 درهم (AED)</option>
                             <option value="JOD">🇯🇴 دينار (JOD)</option>
                             <option value="EGP">🇪🇬 جنيه (EGP)</option>
                             <option value="KWD">🇰🇼 دينار (KWD)</option>
                             <option value="QAR">🇶🇦 ريال (QAR)</option>
-                            <option value="USD">🇺🇸 دولار (USD)</option>
                             <option value="EUR">🇪🇺 يورو (EUR)</option>
                         </select>
                     </div>
@@ -530,14 +530,14 @@
                     <div class="form-group" style="flex: 1">
                         <label>إلى عملة:</label>
                         <select id="converterTo" class="styled-select" onchange="runLiveConversion()">
-                            <option value="SAR" {{ ($settings->currency ?? 'ILS') == 'ILS' ? 'selected' : '' }}>🇸🇦 ريال (SAR)</option>
-                            <option value="ILS" {{ ($settings->currency ?? 'ILS') != 'ILS' ? 'selected' : '' }}>🇵🇸 شيكل (ILS)</option>
+                            <option value="ILS" selected>🇵🇸 شيكل (ILS)</option>
+                            <option value="USD">🇺🇸 دولار (USD)</option>
+                            <option value="SAR">🇸🇦 ريال (SAR)</option>
                             <option value="AED">🇦🇪 درهم (AED)</option>
                             <option value="JOD">🇯🇴 دينار (JOD)</option>
                             <option value="EGP">🇪🇬 جنيه (EGP)</option>
                             <option value="KWD">🇰🇼 دينار (KWD)</option>
                             <option value="QAR">🇶🇦 ريال (QAR)</option>
-                            <option value="USD">🇺🇸 دولار (USD)</option>
                             <option value="EUR">🇪🇺 يورو (EUR)</option>
                         </select>
                     </div>
@@ -1010,8 +1010,8 @@
 
         function runLiveConversion() {
             const amount = parseFloat(document.getElementById('converterAmount')?.value) || 0;
-            const from = document.getElementById('converterFrom')?.value || 'ILS';
-            const to = document.getElementById('converterTo')?.value || 'SAR';
+            const from = document.getElementById('converterFrom')?.value || 'USD';
+            const to = document.getElementById('converterTo')?.value || 'ILS';
             const rate = getExchangeRate(from, to);
             const converted = (amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             
@@ -1063,6 +1063,13 @@
                     window.masroofiRates = data.rates;
                     if (updatedText) updatedText.textContent = data.last_updated;
                     runLiveConversion();
+
+                    const topNavRateText = document.getElementById('topNavRateText');
+                    if (topNavRateText) {
+                        const r = getExchangeRate('USD', 'ILS');
+                        topNavRateText.textContent = `1 USD = ${r.toFixed(4)} ILS`;
+                    }
+
                     if (label) label.textContent = 'تم التحديث! ✓';
                     setTimeout(() => {
                         if (label) label.textContent = 'تحديث الأسعار الآن';
