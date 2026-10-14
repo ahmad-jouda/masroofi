@@ -2625,12 +2625,20 @@
 
     // Modals
     function openModal(id) {
-        const m = document.getElementById(id);
-        if(m) m.classList.remove('hidden');
+        if (typeof window.openModal === 'function') {
+            window.openModal(id);
+        } else {
+            const m = document.getElementById(id);
+            if(m) m.classList.remove('hidden');
+        }
     }
     function closeModal(id) {
-        const m = document.getElementById(id);
-        if(m) m.classList.add('hidden');
+        if (typeof window.closeModal === 'function') {
+            window.closeModal(id);
+        } else {
+            const m = document.getElementById(id);
+            if(m) m.classList.add('hidden');
+        }
     }
 
     function updateLiveDailyImpact(val) {

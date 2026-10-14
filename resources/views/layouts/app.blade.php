@@ -37,13 +37,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
 
-    <!-- Global Modal Helpers -->
+    <!-- Global Modal Helpers & Backdrop Dismissal -->
     <script>
         window.openModal = function(id) {
             const m = document.getElementById(id);
             if (m) {
                 m.classList.remove('hidden');
                 m.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
             }
         };
         window.closeModal = function(id) {
@@ -51,8 +52,73 @@
             if (m) {
                 m.classList.add('hidden');
                 m.style.display = 'none';
+                const remainingOpen = Array.from(document.querySelectorAll('.modal-backdrop:not(.hidden)'))
+                    .filter(el => window.getComputedStyle(el).display !== 'none');
+                if (remainingOpen.length === 0) {
+                    document.body.style.overflow = '';
+                }
             }
         };
+
+        // 🎯 Auto-dismiss modal when clicking outside on the backdrop
+        let backdropMouseDownTarget = null;
+        document.addEventListener('mousedown', function(e) {
+            backdropMouseDownTarget = e.target;
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (e.target && e.target.classList && e.target.classList.contains('modal-backdrop')) {
+                // Ensure mousedown also originated on the backdrop (prevents accidental close on dragging text/input out)
+                if (backdropMouseDownTarget === e.target) {
+                    const modalId = e.target.id;
+                    if (!modalId) return;
+
+                    // Confirm Modal Protection: trigger cancel gracefully
+                    if (modalId === 'customConfirmModal') {
+                        const cancelBtn = document.getElementById('confirmModalCancelBtn');
+                        if (cancelBtn) cancelBtn.click();
+                        return;
+                    }
+
+                    // Welcome Onboarding Modal
+                    if (modalId === 'onboardingModal') {
+                        if (typeof window.closeOnboardingModal === 'function') {
+                            window.closeOnboardingModal();
+                        } else {
+                            window.closeModal('onboardingModal');
+                        }
+                        return;
+                    }
+
+                    window.closeModal(modalId);
+                }
+            }
+            backdropMouseDownTarget = null;
+        });
+
+        // ⌨️ Auto-dismiss topmost modal when pressing Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const openModals = Array.from(document.querySelectorAll('.modal-backdrop:not(.hidden)'))
+                    .filter(el => window.getComputedStyle(el).display !== 'none');
+                if (openModals.length > 0) {
+                    const topModal = openModals[openModals.length - 1];
+                    if (topModal.id === 'customConfirmModal') {
+                        const cancelBtn = document.getElementById('confirmModalCancelBtn');
+                        if (cancelBtn) cancelBtn.click();
+                    } else if (topModal.id === 'onboardingModal') {
+                        if (typeof window.closeOnboardingModal === 'function') {
+                            window.closeOnboardingModal();
+                        } else {
+                            window.closeModal('onboardingModal');
+                        }
+                    } else {
+                        window.closeModal(topModal.id);
+                    }
+                }
+            }
+        });
+    </script>
 
         // User Profile Dropdown Handler
         window.toggleUserDropdown = function(e) {
