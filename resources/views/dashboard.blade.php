@@ -2417,7 +2417,7 @@
                                 @foreach($incompleteGoals as $g)
                                     <option value="{{ $g->id }}" 
                                             data-currency="{{ $g->currency ?? 'ILS' }}" 
-                                            data-rate-from-ils="{{ CurrencyService::getRate('ILS', $g->currency ?? 'ILS') }}"
+                                            data-rate-from-ils="{{ \App\Services\CurrencyService::getRate('ILS', $g->currency ?? 'ILS') }}"
                                             data-symbol="{{ $g->currency_meta['symbol'] }}"
                                             data-flag="{{ $g->currency_meta['flag'] }}"
                                             data-name="{{ $g->name }}">
