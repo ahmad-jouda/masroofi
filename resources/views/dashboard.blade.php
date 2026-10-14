@@ -47,7 +47,8 @@
 
         <div class="cycle-banner-actions">
             <a href="{{ route('dashboard', ['cycle_offset' => $cycleOffset - 1]) }}" class="btn-cycle-nav" title="استعراض الدورة السابقة">
-                ◀ الشهر السابق
+                <span>▶</span>
+                <span>الشهر السابق</span>
             </a>
             @if(!$isCurrentCycle)
                 <a href="{{ route('dashboard') }}" class="btn-cycle-nav btn-cycle-today" title="الرجوع للدورة النشطة">
@@ -55,7 +56,8 @@
                 </a>
             @endif
             <a href="{{ route('dashboard', ['cycle_offset' => $cycleOffset + 1]) }}" class="btn-cycle-nav" title="استعراض الدورة التالية">
-                الشهر التالي ▶
+                <span>الشهر التالي</span>
+                <span>◀</span>
             </a>
             <button type="button" class="btn-cycle-gear" onclick="openModal('salarySettingsModal'); switchSalarySubTab('cycle');" title="إعدادات الدورة والتجديد">
                 ⚙️
@@ -413,10 +415,22 @@
     <div class="rule-50-30-20-card">
         <div class="rule-header">
             <div>
-                <span class="rule-badge">قاعدة الميزانية الذهبية</span>
-                <h2 style="font-size: 1.25rem; font-weight: 800; margin-top: 4px">توزيع الميزانية الصفرية (50% أساسيات - 30% كماليات - 20% تحويش)</h2>
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+                    <span class="rule-badge">قاعدة الميزانية الذهبية</span>
+                    <span class="badge-pro" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; padding: 2px 7px;">
+                        📱 موزعة على رواتب التطبيق فقط: {{ number_format($budgetBase ?? $appSalariesTotal, 0) }} {{ $settings->currency ?? 'ILS' }}
+                    </span>
+                    @if(($cashSalariesTotal ?? 0) > 0)
+                        <span style="font-size: 0.75rem; color: var(--accent-gold); font-weight: 700; white-space: nowrap;">
+                            💵 الكاش منفصل: {{ number_format($cashSalariesTotal, 0) }} {{ $settings->currency ?? 'ILS' }}
+                        </span>
+                    @endif
+                </div>
+                <h2 style="font-size: 1.15rem; font-weight: 800; margin-top: 4px; color: var(--text-primary); line-height: 1.4;">
+                    توزيع الميزانية الصفرية (50% أساسيات - 30% كماليات - 20% تحويش)
+                </h2>
             </div>
-            <form action="{{ route('envelopes.autoAllocate') }}" method="POST" onsubmit="return confirmActionForm(event, { title: 'إعادة توزيع الميزانية', message: 'هل تريد إعادة ضبط وتوزيع ميزانيات الأظرف بحسب الراتب وقاعدة 50/30/20؟', confirmText: 'نعم، أعد التوزيع', icon: '🔄', isDanger: false })">
+            <form action="{{ route('envelopes.autoAllocate') }}" method="POST" onsubmit="return confirmActionForm(event, { title: 'إعادة توزيع الميزانية', message: 'هل تريد إعادة ضبط وتوزيع ميزانيات الأظرف بحسب رواتب التطبيق ({{ number_format($budgetBase ?? $appSalariesTotal, 0) }} {{ $settings->currency ?? "ILS" }}) وقاعدة 50/30/20؟', confirmText: 'نعم، أعد التوزيع', icon: '🔄', isDanger: false })">
                 @csrf
                 <button type="submit" class="btn-secondary">
                     🔄 إعادة توزيع تلقائي للراتب
@@ -428,7 +442,7 @@
             <div class="rule-pillar pillar-needs">
                 <div class="pillar-top">
                     <span>🏠 الاحتياجات الأساسية (50%)</span>
-                    <span>{{ number_format($needsSpent, 0) }} / {{ number_format($needsBudget, 0) }} {{ $settings->currency ?? 'SAR' }}</span>
+                    <span>{{ number_format($needsSpent, 0) }} / {{ number_format($needsBudget, 0) }} {{ $settings->currency ?? 'ILS' }}</span>
                 </div>
                 <div class="pillar-progress">
                     <div class="pillar-fill" style="width: {{ $needsBudget > 0 ? min(100, ($needsSpent / $needsBudget) * 100) : 0 }}%"></div>
@@ -439,7 +453,7 @@
             <div class="rule-pillar pillar-wants">
                 <div class="pillar-top">
                     <span>☕ الرغبات والكماليات (30%)</span>
-                    <span>{{ number_format($wantsSpent, 0) }} / {{ number_format($wantsBudget, 0) }} {{ $settings->currency ?? 'SAR' }}</span>
+                    <span>{{ number_format($wantsSpent, 0) }} / {{ number_format($wantsBudget, 0) }} {{ $settings->currency ?? 'ILS' }}</span>
                 </div>
                 <div class="pillar-progress">
                     <div class="pillar-fill" style="width: {{ $wantsBudget > 0 ? min(100, ($wantsSpent / $wantsBudget) * 100) : 0 }}%"></div>
@@ -450,7 +464,7 @@
             <div class="rule-pillar pillar-savings">
                 <div class="pillar-top">
                     <span>🎯 التحويش والاستثمار (20%)</span>
-                    <span>{{ number_format($savingsSpent, 0) }} / {{ number_format($savingsBudget, 0) }} {{ $settings->currency ?? 'SAR' }}</span>
+                    <span>{{ number_format($savingsSpent, 0) }} / {{ number_format($savingsBudget, 0) }} {{ $settings->currency ?? 'ILS' }}</span>
                 </div>
                 <div class="pillar-progress">
                     <div class="pillar-fill" style="width: {{ $savingsBudget > 0 ? min(100, ($savingsSpent / $savingsBudget) * 100) : 0 }}%"></div>

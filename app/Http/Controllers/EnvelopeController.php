@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Envelope;
+use App\Models\SalarySource;
 use App\Models\UserSetting;
 use Illuminate\Http\Request;
 
@@ -68,7 +69,12 @@ class EnvelopeController extends Controller
     public function autoAllocate(Request $request)
     {
         $settings = UserSetting::find(1);
-        $salary = (float) ($settings->salary ?? 7500);
+        $salarySources = SalarySource::where('is_active', true)->get();
+        $appSalariesTotal = (float) $salarySources->where('payment_method', '!=', 'cash')->sum(fn ($s) => $s->amount_in_shekel ?? $s->amount);
+        $totalSalaryFromSources = (float) $salarySources->sum(fn ($s) => $s->amount_in_shekel ?? $s->amount);
+
+        // Distribute strictly based on App Salaries (leaving Cash untouched as separate liquidity)
+        $salary = $appSalariesTotal > 0 ? $appSalariesTotal : ($totalSalaryFromSources > 0 ? $totalSalaryFromSources : (float) ($settings->salary ?? 7500));
 
         $needsTotal = $salary * 0.5;
         $wantsTotal = $salary * 0.3;
@@ -103,6 +109,6 @@ class EnvelopeController extends Controller
             return response()->json(['success' => true]);
         }
 
-        return redirect()->route('dashboard')->with('success', 'تمت إعادة توزيع ميزانية الأظرف وفق قاعدة 50/30/20 بنجاح');
+        return redirect()->route('dashboard')->with('success', 'تمت إعادة توزيع ميزانية الأظرف على رواتب التطبيق وفق قاعدة 50/30/20 بنجاح (مع بقاء الكاش منفصلاً)');
     }
 }

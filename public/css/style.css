@@ -4389,6 +4389,41 @@ body.theme-light select option {
     white-space: nowrap !important;
     flex-shrink: 0 !important;
   }
+
+  /* 12. 50/30/20 Rule Card */
+  .rule-50-30-20-card {
+    padding: 1.1rem 0.95rem !important;
+    border-radius: 18px !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .rule-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .rule-header > div {
+    width: 100% !important;
+  }
+
+  .rule-header h2 {
+    font-size: 0.98rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .rule-header .btn-secondary {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .rule-bars-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
 }
 
 @media (max-width: 480px) {

@@ -187,8 +187,8 @@ class DashboardController extends Controller
         $daysPercent = (int) round(($daysElapsed / $totalCycleDays) * 100);
         $spentPercent = $totalIncome > 0 ? (int) round(($totalExpenses / $totalIncome) * 100) : 0;
 
-        // 3. 50/30/20 Breakdown & Wallet Balances
-        $budgetBase = $totalSalary > 0 ? $totalSalary : $totalIncome;
+        // 3. 50/30/20 Breakdown & Wallet Balances (Anchored to App Salaries, leaving Cash untouched)
+        $budgetBase = $appSalariesTotal > 0 ? $appSalariesTotal : ($totalSalary > 0 ? $totalSalary : $totalIncome);
         $needsBudget = $budgetBase * 0.5;
         $wantsBudget = $budgetBase * 0.3;
         $savingsBudget = $budgetBase * 0.2;
@@ -378,6 +378,7 @@ class DashboardController extends Controller
             'rateToILS',
             'cashBalance',
             'appBalance',
+            'budgetBase',
             'totalSalary',
             'salarySources',
             'appSalariesTotal',
