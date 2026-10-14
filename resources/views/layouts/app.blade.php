@@ -159,12 +159,11 @@
                 const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
                 const params = new URLSearchParams(window.location.search);
                 const queryTab = params.get('tab');
-                const storedTab = sessionStorage.getItem('masroofi_active_tab') || localStorage.getItem('masroofi_active_tab');
                 
+                // When opened without an explicit hash, strictly default to tab-dashboard
                 const targetTab = (queryTab && validTabs.includes(queryTab)) ? queryTab
                                 : (hash && validTabs.includes(hash)) ? hash
-                                : (storedTab && validTabs.includes(storedTab)) ? storedTab
-                                : null;
+                                : 'tab-dashboard';
                 
                 if (targetTab && targetTab !== 'tab-dashboard') {
                     const style = document.createElement('style');
@@ -180,6 +179,10 @@
                         }
                     `;
                     document.head.appendChild(style);
+                } else {
+                    if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#_=_') {
+                        history.replaceState(null, '', '#tab-dashboard');
+                    }
                 }
             } catch(e) {}
         })();
@@ -223,7 +226,7 @@
         <header class="top-nav" id="mainHeader">
             <!-- Brand & Current Workspace -->
             <div class="nav-brand">
-                <a href="{{ route('dashboard') }}" class="brand-link">
+                <a href="{{ route('dashboard') }}#tab-dashboard" class="brand-link">
                     <div class="logo-icon-wrap" style="background: transparent; border: none; padding: 0;">
                         <img src="{{ asset('icons/icon-192.png') }}?v={{ time() }}" alt="مصروفي" style="width: 36px; height: 36px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
                     </div>

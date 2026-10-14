@@ -1,8 +1,8 @@
 {
-  "name": "مصروفي Pro",
-  "short_name": "مصروفي Pro",
+  "name": "مصروفي",
+  "short_name": "مصروفي",
   "description": "نظام إدارة المصاريف والمحفظة الذكية والأظرف والتحويش",
-  "start_url": "/",
+  "start_url": "/#tab-dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

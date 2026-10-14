@@ -3096,7 +3096,7 @@
         syncFormsActiveTab(tabId);
 
         // Update URL hash cleanly
-        if (updateUrl && window.location.hash !== '#' + tabId) {
+        if (updateUrl) {
             history.replaceState(null, '', '#' + tabId);
         }
     }
@@ -3105,7 +3105,7 @@
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.getAttribute('data-tab');
-            if (tabId) switchTab(tabId);
+            if (tabId) switchTab(tabId, true);
         });
     });
 
@@ -3143,20 +3143,23 @@
         const hashTab = window.location.hash ? window.location.hash.replace('#', '') : null;
         const serverActivePane = document.querySelector('.tab-pane.active');
         const serverTab = serverActivePane ? serverActivePane.id : null;
-        const storedTab = sessionStorage.getItem('masroofi_active_tab') || localStorage.getItem('masroofi_active_tab');
 
+        // Default strictly to tab-dashboard
         let target = 'tab-dashboard';
         if (queryTab && VALID_TABS.includes(queryTab)) {
             target = queryTab;
-        } else if (serverTab && serverTab !== 'tab-dashboard' && VALID_TABS.includes(serverTab)) {
-            target = serverTab;
         } else if (hashTab && VALID_TABS.includes(hashTab)) {
             target = hashTab;
-        } else if (storedTab && VALID_TABS.includes(storedTab)) {
-            target = storedTab;
+        } else if (serverTab && serverTab !== 'tab-dashboard' && VALID_TABS.includes(serverTab)) {
+            target = serverTab;
         }
 
-        switchTab(target, false);
+        switchTab(target, true);
+
+        // Guarantee URL hash is #tab-dashboard when opening app
+        if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#_=_') {
+            history.replaceState(null, '', '#tab-dashboard');
+        }
     })();
 
     function updateLiveDailyImpact(val) {
