@@ -198,7 +198,6 @@
             <div class="splash-text-group">
                 <div class="splash-brand-title">
                     <span class="splash-brand-main">مصروفي</span>
-                    <span class="splash-badge-pro">PRO</span>
                 </div>
                 <p class="splash-brand-tagline">المحفظة المالية الذكية وحصالة الأهداف</p>
             </div>
@@ -226,12 +225,11 @@
             <div class="nav-brand">
                 <a href="{{ route('dashboard') }}" class="brand-link">
                     <div class="logo-icon-wrap" style="background: transparent; border: none; padding: 0;">
-                        <img src="{{ asset('icons/icon-192.png') }}?v={{ time() }}" alt="مصروفي Pro" style="width: 36px; height: 36px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+                        <img src="{{ asset('icons/icon-192.png') }}?v={{ time() }}" alt="مصروفي" style="width: 36px; height: 36px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
                     </div>
                     <div class="brand-text">
                         <div class="brand-title-row">
                             <span class="brand-name">مصروفي</span>
-                            <span class="badge-pro">PRO</span>
                         </div>
                         <span class="brand-subtitle">{{ auth()->user()->workspace->name ?? 'نظام الإدارة المالية والتحويش' }}</span>
                     </div>

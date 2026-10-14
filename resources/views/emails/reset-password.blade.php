@@ -26,7 +26,7 @@
                                             🔐
                                         </div>
                                         <div style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
-                                            مصروفي <span style="color: #34d399; font-size: 16px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(52, 211, 153, 0.4); padding: 2px 8px; border-radius: 6px; margin-right: 4px;">PRO</span>
+                                            مصروفي
                                         </div>
                                         <div style="color: #94a3b8; font-size: 13px; margin-top: 4px;">
                                             إدارة المصاريف والمحفظة الذكية
