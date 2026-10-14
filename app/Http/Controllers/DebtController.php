@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Debt;
+use App\Models\DebtRecord;
 use App\Models\Transaction;
 use App\Services\DebtSurplusHarvestService;
 use Illuminate\Http\Request;
@@ -87,12 +88,14 @@ class DebtController extends Controller
         ]);
 
         DB::transaction(function () use ($validated, $debt) {
+            $note = ! empty($validated['note']) ? $validated['note'] : null;
+
             $tx = Transaction::create([
                 'type' => 'expense',
                 'amount' => $validated['amount'],
                 'date' => $validated['date'],
                 'payment_method' => $validated['payment_method'],
-                'note' => $validated['note'] ?: "سداد دين: {$debt->name}",
+                'note' => $note ?: "سداد دين: {$debt->name}",
             ]);
 
             $debt->records()->create([
@@ -100,7 +103,7 @@ class DebtController extends Controller
                 'amount' => $validated['amount'],
                 'date' => $validated['date'],
                 'payment_method' => $validated['payment_method'],
-                'note' => $validated['note'] ?: 'سداد دفعة من الدين',
+                'note' => $note ?: 'سداد دفعة من الدين',
                 'transaction_id' => $tx->id,
             ]);
 
@@ -119,6 +122,20 @@ class DebtController extends Controller
         $debt->delete();
 
         return redirect()->route('dashboard')->with('success', 'تم حذف حساب الدين وسجلاته بنجاح');
+    }
+
+    public function destroyRecord(DebtRecord $record)
+    {
+        $debt = $record->debt;
+
+        if ($record->transaction_id) {
+            Transaction::where('id', $record->transaction_id)->delete();
+        }
+
+        $record->delete();
+        $debt->recalculateBalance();
+
+        return redirect()->route('dashboard', ['tab' => 'tab-debts'])->with('success', 'تم حذف سجل العملية وإعادة احتساب رصيد الدين بنجاح! الرصيد المستحق حالياً: '.number_format($debt->fresh()->total_debt, 2).' ₪');
     }
 
     public function activateHarvest(Request $request, Debt $debt)

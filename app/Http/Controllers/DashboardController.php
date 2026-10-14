@@ -196,8 +196,14 @@ class DashboardController extends Controller
 
         try {
             $debts = Debt::with(['records', 'harvestLogs'])->latest()->get();
+            foreach ($debts as $d) {
+                $d->recalculateBalance();
+            }
         } catch (\Throwable $e) {
             $debts = Debt::with('records')->latest()->get();
+            foreach ($debts as $d) {
+                $d->recalculateBalance();
+            }
         }
         $totalDebtsOwed = (float) $debts->where('status', 'active')->sum('total_debt');
         $activeDebtsCount = $debts->where('status', 'active')->count();

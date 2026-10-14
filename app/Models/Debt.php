@@ -68,6 +68,16 @@ class Debt extends Model
 
     public function recalculateBalance(): void
     {
+        // Auto-heal: delete orphan debt records whose linked transaction was deleted
+        $orphanRecords = $this->records()
+            ->whereNotNull('transaction_id')
+            ->get()
+            ->filter(fn ($r) => ! Transaction::withoutGlobalScopes()->where('id', $r->transaction_id)->exists());
+
+        foreach ($orphanRecords as $orphan) {
+            $orphan->delete();
+        }
+
         $added = (float) $this->records()->where('type', 'add_debt')->sum('amount');
         $repaid = (float) $this->records()->where('type', 'repayment')->sum('amount');
         $balance = max(0, $added - $repaid);

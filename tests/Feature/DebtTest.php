@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Debt;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\DebtSurplusHarvestService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -241,5 +242,78 @@ class DebtTest extends TestCase
     {
         $this->artisan('debts:harvest-surplus')
             ->assertExitCode(0);
+    }
+
+    public function test_deleting_transaction_linked_to_debt_repayment_recalculates_debt_balance(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $debt = Debt::create([
+            'name' => 'حنان',
+            'type' => 'person',
+            'total_debt' => 60.00,
+            'status' => 'active',
+            'workspace_id' => $user->workspace_id,
+        ]);
+        $debt->records()->create([
+            'type' => 'add_debt',
+            'amount' => 60.00,
+            'date' => now()->toDateString(),
+            'workspace_id' => $user->workspace_id,
+        ]);
+
+        // Repay 27
+        $response = $this->post("/debts/{$debt->id}/repay", [
+            'amount' => 27.00,
+            'date' => now()->toDateString(),
+            'payment_method' => 'transfer',
+        ]);
+        $response->assertSessionHasNoErrors();
+        $this->assertEquals(33.00, (float) $debt->fresh()->total_debt);
+
+        $tx = Transaction::where('amount', 27.00)->first();
+        $this->assertNotNull($tx);
+
+        // Delete transaction
+        $this->delete("/transactions/{$tx->id}");
+
+        $this->assertDatabaseMissing('transactions', ['id' => $tx->id]);
+        $this->assertDatabaseMissing('debt_records', ['transaction_id' => $tx->id]);
+
+        $this->assertEquals(60.00, (float) $debt->fresh()->total_debt);
+    }
+
+    public function test_can_delete_debt_record_directly_and_recalculate_balance(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $debt = Debt::create([
+            'name' => 'حنان',
+            'type' => 'person',
+            'total_debt' => 60.00,
+            'status' => 'active',
+            'workspace_id' => $user->workspace_id,
+        ]);
+        $debt->records()->create([
+            'type' => 'add_debt',
+            'amount' => 60.00,
+            'date' => now()->toDateString(),
+            'workspace_id' => $user->workspace_id,
+        ]);
+        $rec = $debt->records()->create([
+            'type' => 'repayment',
+            'amount' => 27.00,
+            'date' => now()->toDateString(),
+            'workspace_id' => $user->workspace_id,
+        ]);
+        $debt->recalculateBalance();
+        $this->assertEquals(33.00, (float) $debt->fresh()->total_debt);
+
+        $this->delete("/debts/records/{$rec->id}");
+
+        $this->assertDatabaseMissing('debt_records', ['id' => $rec->id]);
+        $this->assertEquals(60.00, (float) $debt->fresh()->total_debt);
     }
 }

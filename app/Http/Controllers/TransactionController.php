@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DebtRecord;
 use App\Models\SavingGoal;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
@@ -146,6 +147,14 @@ class TransactionController extends Controller
             if ($goal) {
                 $goal->decrement('current_amount', min($goal->current_amount, $transaction->amount));
             }
+        }
+
+        // Link with DebtRecord: if this transaction was linked to a debt repayment, delete the record and recalculate balance
+        $linkedDebtRecords = DebtRecord::where('transaction_id', $transaction->id)->get();
+        foreach ($linkedDebtRecords as $record) {
+            $debt = $record->debt;
+            $record->delete();
+            $debt?->recalculateBalance();
         }
 
         $transaction->delete();

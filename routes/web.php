@@ -92,6 +92,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/debts/{debt}/harvest/toggle', [DebtController::class, 'toggleHarvest'])->name('debts.harvest.toggle');
     Route::post('/debts/{debt}/harvest/repay', [DebtController::class, 'repayFromHarvest'])->name('debts.harvest.repay');
     Route::get('/debts/{debt}/harvest/logs', [DebtController::class, 'getHarvestLogs'])->name('debts.harvest.logs');
+    Route::delete('/debts/records/{record}', [DebtController::class, 'destroyRecord'])->name('debts.records.destroy');
 
     // Salary Sources & Multi-Salary Management
     Route::post('/salaries', [SalarySourceController::class, 'store'])->name('salaries.store');

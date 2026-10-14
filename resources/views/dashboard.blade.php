@@ -1353,11 +1353,18 @@
                         <div class="debt-history-preview">
                             <div class="debt-history-title">آخر العمليات على الحساب:</div>
                             @foreach($d->records->take(3) as $r)
-                                <div class="debt-record-item">
-                                    <span>{{ $r->type == 'add_debt' ? '➕ أخذ بضاعة/سلفة' : '💳 سداد نقدي' }} ({{ $r->note ?: '—' }})</span>
-                                    <span class="rec-amount {{ $r->type == 'add_debt' ? 'add' : 'repay' }}">
-                                        {{ $r->type == 'add_debt' ? '+' : '-' }}{{ number_format($r->amount, 1) }}
-                                    </span>
+                                <div class="debt-record-item" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+                                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $r->type == 'add_debt' ? '➕ أخذ بضاعة/سلفة' : '💳 سداد نقدي' }} ({{ $r->note ?: '—' }})</span>
+                                    <div style="display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0;">
+                                        <span class="rec-amount {{ $r->type == 'add_debt' ? 'add' : 'repay' }}">
+                                            {{ $r->type == 'add_debt' ? '+' : '-' }}{{ number_format($r->amount, 1) }}
+                                        </span>
+                                        <form action="{{ route('debts.records.destroy', $r) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirmDeleteForm(event, 'هل أنت متأكد من حذف هذه العملية والتراجع عنها؟ سيتم إعادة احتساب رصيد الدين فوراً.', 'تأكيد التراجع عن العملية')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-del-record" title="حذف هذه العملية والتراجع عنها" style="background: transparent; border: none; color: #ef4444; font-size: 0.85rem; cursor: pointer; padding: 2px 4px; border-radius: 4px; opacity: 0.75; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.75'">🗑️</button>
+                                        </form>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
