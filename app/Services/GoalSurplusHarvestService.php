@@ -77,8 +77,13 @@ class GoalSurplusHarvestService
             $surplus = max(0, $dayAllowance - $daySpent);
 
             if ($surplus > 0) {
+                // Safeguard against over-harvesting if debts already took a portion
+                $alreadyHarvestedForDebt = (float) \App\Models\DebtHarvestLog::whereDate('date', $dateString)->sum('harvested_amount');
+                $availableSurplusForGoal = max(0, $surplus - $alreadyHarvestedForDebt);
+
                 $harvestRatio = (float) ($goal->harvest_ratio ?: 0.50);
                 $rawHarvestILS = round($surplus * $harvestRatio, 2);
+                $rawHarvestILS = min($rawHarvestILS, $availableSurplusForGoal);
 
                 if ($goal->harvest_max_daily && $goal->harvest_max_daily > 0) {
                     $rawHarvestILS = min($rawHarvestILS, (float) $goal->harvest_max_daily);

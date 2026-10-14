@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\Schedule;
 // تحديث أسعار الصرف تلقائياً كل ساعة من السوق المالي
 Schedule::command('currency:update-rates')->hourly();
 
-// رصد واستقطاع فوائض اليوميات تلقائياً لحصالة سداد الديون عند منتصف الليل وبداية يوم جديد
-Schedule::command('debts:harvest-surplus')->dailyAt('00:01');
+// رصد واستقطاع فوائض اليوميات تلقائياً وتوزيع النسب بين الديون وصناديق التحويش عند منتصف الليل (00:01) في بداية كل يوم جديد
+Schedule::command('surplus:harvest-daily')->dailyAt('00:01');
 
-// رصد واستقطاع فوائض اليوميات تلقائياً لصناديق التحويش عند منتصف الليل وبداية يوم جديد
-Schedule::command('goals:harvest-surplus')->dailyAt('00:01');
