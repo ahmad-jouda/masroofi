@@ -118,7 +118,6 @@
                 }
             }
         });
-    </script>
 
         // User Profile Dropdown Handler
         window.toggleUserDropdown = function(e) {
