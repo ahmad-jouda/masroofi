@@ -35,7 +35,11 @@ class DashboardController extends Controller
         );
 
         $envelopes = Envelope::with('transactions')->get();
-        $goals = SavingGoal::with('harvestLogs')->get();
+        try {
+            $goals = SavingGoal::with('harvestLogs')->get();
+        } catch (\Throwable $e) {
+            $goals = SavingGoal::all();
+        }
         $recentTransactions = Transaction::with(['envelope', 'goal', 'user'])->latest('date')->latest('id')->take(6)->get();
         $allTransactions = Transaction::with(['envelope', 'goal', 'user'])->latest('date')->latest('id')->get();
         $wishlist = Wishlist::latest()->get();
@@ -178,10 +182,23 @@ class DashboardController extends Controller
             : ($todayExpenses > 0 ? 100 : 0);
 
         // Process active daily surplus harvesting for debts and saving goals automatically
-        DebtSurplusHarvestService::processActiveHarvests((float) $safeDaily);
-        GoalSurplusHarvestService::processActiveHarvests((float) $safeDaily);
+        try {
+            DebtSurplusHarvestService::processActiveHarvests((float) $safeDaily);
+        } catch (\Throwable $e) {
+            // Silently bypass if database tables not yet migrated
+        }
 
-        $debts = Debt::with(['records', 'harvestLogs'])->latest()->get();
+        try {
+            GoalSurplusHarvestService::processActiveHarvests((float) $safeDaily);
+        } catch (\Throwable $e) {
+            // Silently bypass if database tables not yet migrated
+        }
+
+        try {
+            $debts = Debt::with(['records', 'harvestLogs'])->latest()->get();
+        } catch (\Throwable $e) {
+            $debts = Debt::with('records')->latest()->get();
+        }
         $totalDebtsOwed = (float) $debts->where('status', 'active')->sum('total_debt');
         $activeDebtsCount = $debts->where('status', 'active')->count();
         $completedHarvestDebts = $debts->filter(fn ($d) => $d->is_harvest_complete && $d->status === 'active');

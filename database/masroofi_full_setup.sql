@@ -37,7 +37,7 @@ CREATE TABLE `cache` (
 
 LOCK TABLES `cache` WRITE;
 /*!40000 ALTER TABLE `cache` DISABLE KEYS */;
-INSERT INTO `cache` VALUES ('msrofy-cache-masroofi_exchange_rates_last_updated','s:25:\"2026-10-13T10:31:18+00:00\";',1791973878),('msrofy-cache-masroofi_exchange_rates_usd','a:9:{s:3:\"USD\";d:1;s:3:\"SAR\";d:3.75;s:3:\"ILS\";d:3.076893;s:3:\"AED\";d:3.6725;s:3:\"JOD\";d:0.709;s:3:\"EGP\";d:52.658715;s:3:\"KWD\";d:0.311015;s:3:\"QAR\";d:3.64;s:3:\"EUR\";d:0.895156;}',1791891078),('msrofy-pro-cache-admin@remal.com|127.0.0.1','i:1;',1791822365),('msrofy-pro-cache-admin@remal.com|127.0.0.1:timer','i:1791822365;',1791822365),('msrofy-pro-cache-masroofi_exchange_rates_last_updated','s:25:\"2026-10-13T09:23:19+00:00\";',1791969799),('msrofy-pro-cache-masroofi_exchange_rates_usd','a:9:{s:3:\"USD\";d:1;s:3:\"SAR\";d:3.75;s:3:\"ILS\";d:3.076893;s:3:\"AED\";d:3.6725;s:3:\"JOD\";d:0.709;s:3:\"EGP\";d:52.658715;s:3:\"KWD\";d:0.311015;s:3:\"QAR\";d:3.64;s:3:\"EUR\";d:0.895156;}',1791886999);
+INSERT INTO `cache` VALUES ('msrofy-cache-masroofi_exchange_rates_last_updated','s:25:\"2026-10-14T07:29:48+00:00\";',1792049388),('msrofy-cache-masroofi_exchange_rates_usd','a:9:{s:3:\"USD\";d:1;s:3:\"SAR\";d:3.75;s:3:\"ILS\";d:3.072127;s:3:\"AED\";d:3.6725;s:3:\"JOD\";d:0.709;s:3:\"EGP\";d:52.804385;s:3:\"KWD\";d:0.31129;s:3:\"QAR\";d:3.64;s:3:\"EUR\";d:0.893421;}',1791966588),('msrofy-pro-cache-admin@remal.com|127.0.0.1','i:1;',1791822365),('msrofy-pro-cache-admin@remal.com|127.0.0.1:timer','i:1791822365;',1791822365),('msrofy-pro-cache-masroofi_exchange_rates_last_updated','s:25:\"2026-10-13T09:23:19+00:00\";',1791969799),('msrofy-pro-cache-masroofi_exchange_rates_usd','a:9:{s:3:\"USD\";d:1;s:3:\"SAR\";d:3.75;s:3:\"ILS\";d:3.076893;s:3:\"AED\";d:3.6725;s:3:\"JOD\";d:0.709;s:3:\"EGP\";d:52.658715;s:3:\"KWD\";d:0.311015;s:3:\"QAR\";d:3.64;s:3:\"EUR\";d:0.895156;}',1791886999);
 /*!40000 ALTER TABLE `cache` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -211,7 +211,7 @@ CREATE TABLE `envelopes` (
 
 LOCK TABLES `envelopes` WRITE;
 /*!40000 ALTER TABLE `envelopes` DISABLE KEYS */;
-INSERT INTO `envelopes` VALUES (1,'سكن وفواتير','🏠',0.00,'needs','#3b82f6','2026-10-11 08:58:38','2026-10-12 12:25:06',1),(2,'بقالة وتموين','🛒',0.00,'needs','#10b981','2026-10-11 08:58:38','2026-10-12 12:25:06',1),(3,'بنزين ومواصلات','🚗',0.00,'needs','#06b6d4','2026-10-11 08:58:38','2026-10-12 12:25:06',1),(4,'صحة وصيدلية','💊',0.00,'needs','#ec4899','2026-10-11 08:58:38','2026-10-12 12:25:06',1),(5,'مطاعم وتوصيل','🍔',0.00,'wants','#f59e0b','2026-10-11 08:58:38','2026-10-12 12:25:06',1),(6,'تسوق وملابس','🛍️',0.00,'wants','#8b5cf6','2026-10-11 08:58:38','2026-10-12 12:25:06',1),(7,'ترفيه ومستلزمات','✈️',0.00,'wants','#f97316','2026-10-11 08:58:38','2026-10-12 12:25:06',1),(8,'تحويش للطوارئ','🛡️',0.00,'savings','#10b981','2026-10-11 08:58:38','2026-10-12 12:25:06',1);
+INSERT INTO `envelopes` VALUES (1,'سكن وفواتير','🏠',245.13,'needs','#3b82f6','2026-10-11 08:58:38','2026-10-14 04:30:22',1),(2,'بقالة وتموين','🛒',245.13,'needs','#10b981','2026-10-11 08:58:38','2026-10-14 04:30:22',1),(3,'بنزين ومواصلات','🚗',245.13,'needs','#06b6d4','2026-10-11 08:58:38','2026-10-14 04:30:22',1),(4,'صحة وصيدلية','💊',245.13,'needs','#ec4899','2026-10-11 08:58:38','2026-10-14 04:30:22',1),(5,'مطاعم وتوصيل','🍔',196.10,'wants','#f59e0b','2026-10-11 08:58:38','2026-10-14 04:30:22',1),(6,'تسوق وملابس','🛍️',196.10,'wants','#8b5cf6','2026-10-11 08:58:38','2026-10-14 04:30:22',1),(7,'ترفيه ومستلزمات','✈️',196.10,'wants','#f97316','2026-10-11 08:58:38','2026-10-14 04:30:22',1),(8,'تحويش للطوارئ','🛡️',392.20,'savings','#10b981','2026-10-11 08:58:38','2026-10-14 04:30:22',1);
 /*!40000 ALTER TABLE `envelopes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -243,6 +243,43 @@ CREATE TABLE `failed_jobs` (
 LOCK TABLES `failed_jobs` WRITE;
 /*!40000 ALTER TABLE `failed_jobs` DISABLE KEYS */;
 /*!40000 ALTER TABLE `failed_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `goal_harvest_logs`
+--
+
+DROP TABLE IF EXISTS `goal_harvest_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `goal_harvest_logs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `workspace_id` bigint unsigned DEFAULT NULL,
+  `goal_id` bigint unsigned NOT NULL,
+  `date` date NOT NULL,
+  `day_allowance` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `day_spent` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `surplus_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `harvested_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `harvested_in_goal_currency` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `currency` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ILS',
+  `exchange_rate` decimal(12,6) NOT NULL DEFAULT '1.000000',
+  `note` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `goal_harvest_logs_workspace_id_foreign` (`workspace_id`),
+  CONSTRAINT `goal_harvest_logs_workspace_id_foreign` FOREIGN KEY (`workspace_id`) REFERENCES `workspaces` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `goal_harvest_logs`
+--
+
+LOCK TABLES `goal_harvest_logs` WRITE;
+/*!40000 ALTER TABLE `goal_harvest_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `goal_harvest_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -317,7 +354,7 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +363,7 @@ CREATE TABLE `migrations` (
 
 LOCK TABLES `migrations` WRITE;
 /*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-INSERT INTO `migrations` VALUES (1,'0001_01_01_000000_create_users_table',1),(2,'0001_01_01_000001_create_cache_table',1),(3,'0001_01_01_000002_create_jobs_table',1),(4,'2026_10_11_000001_create_masroofi_tables',1),(5,'2026_10_11_000002_ensure_updated_at_on_transactions_table',2),(6,'2026_10_11_000003_add_currency_to_saving_goals_table',2),(7,'2026_10_11_000004_create_salary_sources_table',3),(8,'2026_10_11_124459_add_cycle_mode_to_user_settings_table',4),(9,'2026_10_12_095848_create_debts_and_debt_records_tables',5),(10,'2026_10_12_103446_add_surplus_harvesting_to_debts_and_create_harvest_logs_table',6),(11,'2026_10_12_122417_create_workspaces_and_multi_user_system_table',7);
+INSERT INTO `migrations` VALUES (1,'0001_01_01_000000_create_users_table',1),(2,'0001_01_01_000001_create_cache_table',1),(3,'0001_01_01_000002_create_jobs_table',1),(4,'2026_10_11_000001_create_masroofi_tables',1),(5,'2026_10_11_000002_ensure_updated_at_on_transactions_table',2),(6,'2026_10_11_000003_add_currency_to_saving_goals_table',2),(7,'2026_10_11_000004_create_salary_sources_table',3),(8,'2026_10_11_124459_add_cycle_mode_to_user_settings_table',4),(9,'2026_10_12_095848_create_debts_and_debt_records_tables',5),(10,'2026_10_12_103446_add_surplus_harvesting_to_debts_and_create_harvest_logs_table',6),(11,'2026_10_12_122417_create_workspaces_and_multi_user_system_table',7),(12,'2026_10_14_000001_clean_non_savings_transactions_goal_id',8),(13,'2026_10_14_090657_add_surplus_harvesting_to_saving_goals_and_create_goal_harvest_logs_table',9),(14,'2026_10_14_091836_add_workspace_id_to_goal_harvest_logs_table',10);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -403,6 +440,10 @@ CREATE TABLE `saving_goals` (
   `icon` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 0xF09F8EAF COMMENT 'أيقونة الهدف',
   `target_amount` decimal(12,2) NOT NULL COMMENT 'المبلغ المستهدف',
   `current_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT 'المبلغ المجموع حالياً',
+  `is_harvest_active` tinyint(1) NOT NULL DEFAULT '0',
+  `harvest_ratio` decimal(5,2) NOT NULL DEFAULT '0.50',
+  `harvest_max_daily` decimal(10,2) DEFAULT NULL,
+  `harvest_started_at` date DEFAULT NULL,
   `currency` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ILS',
   `deadline` date DEFAULT NULL COMMENT 'تاريخ الإنجاز المستهدف',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -420,7 +461,7 @@ CREATE TABLE `saving_goals` (
 
 LOCK TABLES `saving_goals` WRITE;
 /*!40000 ALTER TABLE `saving_goals` DISABLE KEYS */;
-INSERT INTO `saving_goals` VALUES (7,'صندوق الطوراىء بالدولار','🛡️',1100.00,1100.00,'USD','2026-10-12','2026-10-12 04:38:59','2026-10-12 12:25:06',1);
+INSERT INTO `saving_goals` VALUES (7,'صندوق الطوراىء بالدولار','🛡️',1100.00,1100.00,0,0.50,NULL,NULL,'USD','2026-10-12','2026-10-12 04:38:59','2026-10-12 12:25:06',1);
 /*!40000 ALTER TABLE `saving_goals` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -450,7 +491,7 @@ CREATE TABLE `sessions` (
 
 LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
-INSERT INTO `sessions` VALUES ('8EZBFmDOH0yc3UGhezv9k2sMzusd5nHU9JV66J45',1,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36','eyJfdG9rZW4iOiJ0U3NpMjFiaGYxd0E0TkgwWEZkaVpmcHF5VWE1T3JhalB3Q0Ntd2lTIiwibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiOjEsIl9wcmV2aW91cyI6eyJ1cmwiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMCIsInJvdXRlIjoiZGFzaGJvYXJkIn0sIl9mbGFzaCI6eyJvbGQiOltdLCJuZXciOltdfX0=',1791887478),('jATlfJ3CqSZYNFpX4OoncL76ZqJcjcBDsdW75KWB',1,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36','eyJfdG9rZW4iOiJBd0tjM1NpN3B4Z1VVZ09BVkVTa08wTXZsN0FmcmtqNGYwdEN1Mzc4IiwiX2ZsYXNoIjp7Im5ldyI6W10sIm9sZCI6W119LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwMDAiLCJyb3V0ZSI6ImRhc2hib2FyZCJ9LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwicGFzc3dvcmRfaGFzaF93ZWIiOiJkYjc1ZWE2N2I3Y2I2NzA0ZjA2NWI2NjhkY2IyNTEzZmU5NmU1OGRhNjFlZmM4ZjgzNjExMGJlNjkxNzZjN2NmIn0=',1791886904),('qZ1QgNfvvdH1a8kjRcfFmwYwuWHlZg1kZRNQrJom',1,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36','eyJfdG9rZW4iOiJxQmk1UVppVTlRam9jN2Y5emR2NXN4bVpoMjlkcnl1cDBLR1BEQjJiIiwibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiOjEsIl9wcmV2aW91cyI6eyJ1cmwiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYWRtaW5cL3VzZXJzIiwicm91dGUiOiJhZG1pbi51c2Vycy5pbmRleCJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX19',1791886239);
+INSERT INTO `sessions` VALUES ('8EZBFmDOH0yc3UGhezv9k2sMzusd5nHU9JV66J45',1,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36','eyJfdG9rZW4iOiJ0U3NpMjFiaGYxd0E0TkgwWEZkaVpmcHF5VWE1T3JhalB3Q0Ntd2lTIiwibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiOjEsIl9wcmV2aW91cyI6eyJ1cmwiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMCIsInJvdXRlIjoiZGFzaGJvYXJkIn0sIl9mbGFzaCI6eyJvbGQiOltdLCJuZXciOltdfX0=',1791887478),('jATlfJ3CqSZYNFpX4OoncL76ZqJcjcBDsdW75KWB',1,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36','eyJfdG9rZW4iOiJBd0tjM1NpN3B4Z1VVZ09BVkVTa08wTXZsN0FmcmtqNGYwdEN1Mzc4IiwiX2ZsYXNoIjp7Im5ldyI6W10sIm9sZCI6W119LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwMDAiLCJyb3V0ZSI6ImRhc2hib2FyZCJ9LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwicGFzc3dvcmRfaGFzaF93ZWIiOiJkYjc1ZWE2N2I3Y2I2NzA0ZjA2NWI2NjhkY2IyNTEzZmU5NmU1OGRhNjFlZmM4ZjgzNjExMGJlNjkxNzZjN2NmIn0=',1791886904),('qZ1QgNfvvdH1a8kjRcfFmwYwuWHlZg1kZRNQrJom',1,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36','eyJfdG9rZW4iOiJxQmk1UVppVTlRam9jN2Y5emR2NXN4bVpoMjlkcnl1cDBLR1BEQjJiIiwibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiOjEsIl9wcmV2aW91cyI6eyJ1cmwiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYWRtaW5cL3VzZXJzIiwicm91dGUiOiJhZG1pbi51c2Vycy5pbmRleCJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX19',1791886239),('VcFuwhHOHWVqDOmSkxr4E8G4gIQyASuKwKx8Hrly',1,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36','eyJfdG9rZW4iOiI1cThVZkl3VENnOW9lRERzRTcwUU9hNTI0a3c4MnhzTG9Jb0JhcVhXIiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDAwIiwicm91dGUiOiJkYXNoYm9hcmQifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwicGFzc3dvcmRfaGFzaF93ZWIiOiJkYjc1ZWE2N2I3Y2I2NzA0ZjA2NWI2NjhkY2IyNTEzZmU5NmU1OGRhNjFlZmM4ZjgzNjExMGJlNjkxNzZjN2NmIn0=',1791893345);
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -522,7 +563,7 @@ CREATE TABLE `transactions` (
 
 LOCK TABLES `transactions` WRITE;
 /*!40000 ALTER TABLE `transactions` DISABLE KEYS */;
-INSERT INTO `transactions` VALUES (9,'expense',3.00,3,NULL,'2026-10-11','transfer','Updated transport','2026-10-12 04:35:23','2026-10-12 08:27:34',1,1),(10,'expense',3.00,3,NULL,'2026-10-12','transfer','مواصلات من الشركة ل المدفع','2026-10-13 02:49:26','2026-10-13 02:49:26',1,1),(11,'expense',4.00,2,NULL,'2026-10-12','transfer','حجات من بسطة محمود أخي','2026-10-13 02:49:26','2026-10-13 02:49:26',1,1),(13,'expense',15.00,4,7,'2026-10-13','transfer','دواء كونجستال لحمود','2026-10-13 05:42:08','2026-10-13 05:42:08',1,1),(14,'expense',20.00,2,7,'2026-10-12','transfer','حجات لسهرة','2026-10-13 06:54:38','2026-10-13 06:54:38',1,1);
+INSERT INTO `transactions` VALUES (9,'expense',3.00,3,NULL,'2026-10-11','transfer','Updated transport','2026-10-12 04:35:23','2026-10-12 08:27:34',1,1),(10,'expense',3.00,3,NULL,'2026-10-12','transfer','مواصلات من الشركة ل المدفع','2026-10-13 02:49:26','2026-10-13 02:49:26',1,1),(11,'expense',4.00,2,NULL,'2026-10-12','transfer','حجات من بسطة محمود أخي','2026-10-13 02:49:26','2026-10-13 02:49:26',1,1),(13,'expense',15.00,4,NULL,'2026-10-13','transfer','دواء كونجستال لحمود','2026-10-13 05:42:08','2026-10-14 03:54:08',1,1),(14,'expense',20.00,2,NULL,'2026-10-12','transfer','حجات لسهرة','2026-10-13 06:54:38','2026-10-14 03:54:08',1,1);
 /*!40000 ALTER TABLE `transactions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -676,4 +717,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-13 13:55:19
+-- Dump completed on 2026-10-14 12:27:19
