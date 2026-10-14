@@ -58,10 +58,24 @@ const MasroofiOffline = {
 
             const request = store.add(record);
             request.onsuccess = (e) => {
+                MasroofiOffline.requestBackgroundSync();
                 resolve(e.target.result);
             };
             request.onerror = (e) => reject(e);
         });
+    },
+
+    // Request Background Sync with Service Worker
+    async requestBackgroundSync() {
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                await reg.sync.register('sync-pending-transactions');
+                console.log('Background sync registered with Service Worker');
+            } catch (err) {
+                console.warn('Background sync registration failed (fallback active):', err);
+            }
+        }
     },
 
     // Get all pending transactions
@@ -757,7 +771,7 @@ const MasroofiOffline = {
 
             // When network is restored, automatically sync!
             window.addEventListener('online', () => {
-                console.log('Network connected. Triggering automatic background sync...');
+                console.log('Network connected. Triggering automatic sync...');
                 this.updateUI();
                 this.syncTransactions(false);
             });
@@ -766,6 +780,53 @@ const MasroofiOffline = {
                 console.log('Network disconnected. Entering Offline-First mode.');
                 this.updateUI();
             });
+
+            // Listen to Service Worker messages (e.g., when background sync completes)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'TRANSACTIONS_SYNCED') {
+                        console.log('Background Sync completed by Service Worker:', event.data.count);
+                        this.updateUI();
+                        this.showToast(`🎉 تم رفع ومزامنة ${event.data.count} معاملات في الخلفية بنجاح!`, 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1200);
+                    }
+                });
+
+                // Request Periodic Background Sync if available
+                navigator.serviceWorker.ready.then(reg => {
+                    if ('periodicSync' in reg) {
+                        reg.periodicSync.register('sync-pending-transactions', {
+                            minInterval: 15 * 60 * 1000 // every 15 minutes
+                        }).catch(() => {});
+                    }
+                }).catch(() => {});
+            }
+
+            // Sync immediately when app is brought to foreground or phone is unlocked (essential for mobile PWAs)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && navigator.onLine) {
+                    this.getAllPending().then(items => {
+                        if (items.length > 0) this.syncTransactions(false);
+                    });
+                }
+            });
+
+            window.addEventListener('focus', () => {
+                if (navigator.onLine) {
+                    this.getAllPending().then(items => {
+                        if (items.length > 0) this.syncTransactions(false);
+                    });
+                }
+            });
+
+            // Request Notification permission softly so system notification appears when synced in background
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(() => {
+                    Notification.requestPermission().catch(() => {});
+                }, 4000);
+            }
 
             // Periodically check every 20s if pending items exist and we are online
             setInterval(() => {

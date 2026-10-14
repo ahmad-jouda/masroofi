@@ -16,7 +16,7 @@ class EnsureAppUnlocked
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->check() && $request->session()->get('masroofi_locked') === true) {
-            if (! $request->routeIs('pin.unlock*') && ! $request->routeIs('logout')) {
+            if (! $request->routeIs('pin.unlock*') && ! $request->routeIs('logout') && ! $request->routeIs('transactions.sync')) {
                 return redirect()->route('pin.unlock');
             }
         }
