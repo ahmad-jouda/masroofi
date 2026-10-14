@@ -20,17 +20,35 @@ class SavingGoal extends Model
         'current_amount',
         'currency',
         'deadline',
+        'is_harvest_active',
+        'harvest_ratio',
+        'harvest_max_daily',
+        'harvest_started_at',
     ];
 
     protected $casts = [
         'target_amount' => 'decimal:2',
         'current_amount' => 'decimal:2',
         'deadline' => 'date',
+        'is_harvest_active' => 'boolean',
+        'harvest_ratio' => 'decimal:2',
+        'harvest_max_daily' => 'decimal:2',
+        'harvest_started_at' => 'date',
     ];
 
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class, 'goal_id');
+    }
+
+    public function harvestLogs(): HasMany
+    {
+        return $this->hasMany(GoalHarvestLog::class, 'goal_id')->orderBy('date', 'desc');
+    }
+
+    public function getHarvestRatioPercentAttribute(): int
+    {
+        return (int) round(($this->harvest_ratio ?: 0.50) * 100);
     }
 
     public function getProgressPercentAttribute(): int

@@ -11,6 +11,7 @@ use App\Http\Controllers\EnvelopeController;
 use App\Http\Controllers\SalarySourceController;
 use App\Http\Controllers\SavingGoalController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SurplusAllocationController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\WishlistController;
@@ -66,6 +67,11 @@ Route::middleware('auth')->group(function () {
     // Saving Goals
     Route::post('/goals', [SavingGoalController::class, 'store'])->name('goals.store');
     Route::post('/goals/{goal}/deposit', [SavingGoalController::class, 'deposit'])->name('goals.deposit');
+    Route::post('/goals/{goal}/harvest-surplus', [SavingGoalController::class, 'harvestSurplus'])->name('goals.harvestSurplus');
+    Route::post('/goals/{goal}/harvest/activate', [SavingGoalController::class, 'activateHarvest'])->name('goals.harvest.activate');
+    Route::post('/goals/{goal}/harvest/toggle', [SavingGoalController::class, 'toggleHarvest'])->name('goals.harvest.toggle');
+    Route::get('/goals/{goal}/harvest/logs', [SavingGoalController::class, 'getHarvestLogs'])->name('goals.harvest.logs');
+    Route::post('/surplus/allocate', [SurplusAllocationController::class, 'allocate'])->name('surplus.allocate');
     Route::delete('/goals/{goal}', [SavingGoalController::class, 'destroy'])->name('goals.destroy');
 
     // 48-Hour Wishlist

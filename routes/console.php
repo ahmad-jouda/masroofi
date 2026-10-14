@@ -14,3 +14,6 @@ Schedule::command('currency:update-rates')->hourly();
 
 // رصد واستقطاع فوائض اليوميات تلقائياً لحصالة سداد الديون عند منتصف الليل وبداية يوم جديد
 Schedule::command('debts:harvest-surplus')->dailyAt('00:01');
+
+// رصد واستقطاع فوائض اليوميات تلقائياً لصناديق التحويش عند منتصف الليل وبداية يوم جديد
+Schedule::command('goals:harvest-surplus')->dailyAt('00:01');

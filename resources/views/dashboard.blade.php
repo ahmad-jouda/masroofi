@@ -117,6 +117,34 @@
                     </div>
                 </div>
 
+                @php
+                    $unpaidDebts = $debts->where('status', 'active')->filter(fn ($d) => (float)$d->total_debt > 0);
+                    $hasUnpaidDebts = $unpaidDebts->count() > 0;
+                    $incompleteGoals = $goals->filter(fn ($g) => (float)$g->current_amount < (float)$g->target_amount);
+                    $hasIncompleteGoals = $incompleteGoals->count() > 0;
+                @endphp
+
+                @if($todayRemaining > 0 && ($hasUnpaidDebts || $hasIncompleteGoals))
+                    <div class="today-harvest-cta-wrap">
+                        <button type="button" class="btn-today-harvest-pill" onclick="openDailySurplusHarvestModal({{ (float)$todayRemaining }})">
+                            <span class="harvest-icon-glow">⚡</span>
+                            <div class="harvest-text-wrap">
+                                <span class="harvest-title">وفرت <strong>{{ number_format($todayRemaining, 0) }} {{ $settings->currency ?? 'ILS' }}</strong> من يوميتك اليوم!</span>
+                                <span class="harvest-sub">
+                                    @if($hasUnpaidDebts && $hasIncompleteGoals)
+                                        اضغط لتوزيع الفائض الذكي بين الديون والتحويش واليوميات ⚡
+                                    @elseif($hasIncompleteGoals)
+                                        اضغط لاقتناص نسبة مئوية للفائض وحوّلها لهدفك المالي 🎯
+                                    @elseif($hasUnpaidDebts)
+                                        اضغط لاقتناص نسبة مئوية للفائض لتسريع سداد الديون 💳
+                                    @endif
+                                </span>
+                            </div>
+                            <span class="harvest-arrow-pill">توزيع الفائض ◀</span>
+                        </button>
+                    </div>
+                @endif
+
                 <!-- Today's Mini Progress Bar & Status Message -->
                 <div class="today-burn-wrap">
                     <div class="today-burn-header">
@@ -582,9 +610,16 @@
             <h2 style="font-size: 1.35rem; font-weight: 800">🎯 صناديق وأهداف التحويش (Sinking Funds)</h2>
             <p class="section-desc">اعزل أموالك للأهداف الكبرى لتجنب المفاجآت (طوارئ، سيارة، سفر، زواج، صيانة).</p>
         </div>
-        <button class="btn-primary" onclick="openModal('goalModal')">
-            ➕ إنشاء هدف تحويش جديد
-        </button>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+            @if($todayRemaining > 0 && ($hasUnpaidDebts || $hasIncompleteGoals))
+                <button type="button" class="btn-subtle" onclick="openDailySurplusHarvestModal({{ (float)$todayRemaining }})" style="border-color: rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    ⚡ توزيع فائض اليوم ({{ number_format($todayRemaining, 0) }} ₪)
+                </button>
+            @endif
+            <button class="btn-primary" onclick="openModal('goalModal')">
+                ➕ إنشاء هدف تحويش جديد
+            </button>
+        </div>
     </div>
 
     <!-- Goals Summary Card -->
@@ -651,10 +686,49 @@
                     <div class="goal-progress-wrap">
                         <div class="goal-progress-fill" style="width: {{ $goal->progress_percent }}%"></div>
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem">
                         نسبة الإنجاز: <strong>{{ $goal->progress_percent }}%</strong> 
                         (متبقي: {{ number_format($goal->remaining_needed, 0) }} {{ $goal->currency_meta['symbol'] }})
                     </div>
+
+                    <!-- Auto-Harvest Pot Card / Activation -->
+                    @if($goal->is_harvest_active)
+                        <div class="debt-harvest-pot-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 0.75rem 0.85rem; margin-bottom: 0.85rem;">
+                            <div class="harvest-pot-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: #10b981;">
+                                    <span>⚡</span>
+                                    <span>اقتطاع الفائض التلقائي: نشط</span>
+                                </div>
+                                <span style="font-size: 0.72rem; padding: 0.15rem 0.55rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border-radius: 999px; font-weight: 700;">
+                                    {{ $goal->harvest_ratio_percent }}% من الفائض
+                                </span>
+                            </div>
+                            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 0.65rem; line-height: 1.4;">
+                                يقتطع النظام تلقائياً <strong>{{ $goal->harvest_ratio_percent }}%</strong> من أي فائض متبقي من يوميتك عند منتصف الليل ويودعه بالـ {{ $goal->currency_meta['symbol'] }}.
+                            </div>
+                            <div class="harvest-pot-actions" style="display: flex; gap: 0.35rem;">
+                                <button type="button" class="btn-subtle" onclick="openGoalHarvestLogsModal({{ $goal->id }}, '{{ addslashes($goal->name) }}')" style="flex: 1; padding: 0.35rem 0.5rem; font-size: 0.76rem; font-weight: 700; background: rgba(255,255,255,0.06); border-radius: 8px;">
+                                    📋 سجل الفوائض ({{ $goal->harvestLogs->count() }})
+                                </button>
+                                <button type="button" class="btn-subtle" onclick="openActivateGoalHarvestModal({{ $goal->id }}, '{{ addslashes($goal->name) }}', {{ $goal->remaining_needed }}, '{{ $goal->currency }}', '{{ $goal->currency_meta['symbol'] }}', {{ $goal->harvest_ratio_percent }}, {{ $goal->harvest_max_daily ?? 0 }})" style="padding: 0.35rem 0.55rem; font-size: 0.76rem; font-weight: 700; background: rgba(255,255,255,0.06); border-radius: 8px;" title="تعديل النسبة">
+                                    ⚙️ تعديل
+                                </button>
+                                <form action="{{ route('goals.harvest.toggle', $goal) }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="btn-subtle" style="padding: 0.35rem 0.5rem; font-size: 0.76rem; font-weight: 700; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 8px;" title="إيقاف مؤقت للاقتطاع">
+                                        ⏸️ إيقاف
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @elseif($goal->current_amount < $goal->target_amount)
+                        <div style="margin-bottom: 0.85rem;">
+                            <button type="button" class="btn-activate-harvest" onclick="openActivateGoalHarvestModal({{ $goal->id }}, '{{ addslashes($goal->name) }}', {{ $goal->remaining_needed }}, '{{ $goal->currency }}', '{{ $goal->currency_meta['symbol'] }}', 50, 0)" style="width: 100%; background: rgba(16, 185, 129, 0.08); border: 1px dashed rgba(16, 185, 129, 0.35); color: #34d399; border-radius: 10px; padding: 0.5rem 0.75rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.2s;">
+                                <span>⚡</span>
+                                <span>تفعيل الاقتطاع التلقائي من فائض نهاية اليوم</span>
+                            </button>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="goal-actions-row">
@@ -2082,6 +2156,25 @@
                 </div>
             </div>
 
+            <!-- Optional Auto-Harvest at Goal Creation -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 0.85rem; margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 700; color: #10b981; margin: 0;">
+                    <input type="checkbox" name="is_harvest_active" value="1" id="chkNewGoalHarvest" onchange="toggleNewGoalHarvestOptions(this.checked)" style="accent-color: #10b981; width: 18px; height: 18px;">
+                    <span>⚡ تفعيل الاقتطاع التلقائي من فائض نهاية اليوم لهذه الحصالة</span>
+                </label>
+                <div id="newGoalHarvestOptionsWrap" class="hidden" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(16, 185, 129, 0.2);">
+                    <label style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.35rem; display: block;">نسبة الاقتطاع من فائض كل يوم:</label>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="range" min="5" max="100" value="50" step="5" class="harvest-slider" id="newGoalHarvestSlider" oninput="document.getElementById('newGoalHarvestNum').value = this.value">
+                        <input type="number" name="harvest_ratio" id="newGoalHarvestNum" value="50" min="5" max="100" class="styled-input" style="width: 70px; text-align: center; font-weight: 800;" oninput="document.getElementById('newGoalHarvestSlider').value = this.value">
+                        <span style="font-weight: 800; color: var(--text-secondary);">%</span>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 0.74rem; display: block; margin-top: 0.35rem;">
+                        💡 في نهاية كل يوم (عند منتصف الليل)، يقتطع النظام هذه النسبة تلقائياً من الفائض المتبقي ويودعها بعملة الحصالة دون أي مجهود منك.
+                    </small>
+                </div>
+            </div>
+
             <div class="modal-actions">
                 <button type="button" class="btn-subtle" onclick="closeModal('goalModal')">إلغاء</button>
                 <button type="submit" class="btn-primary">إنشاء الحصالة</button>
@@ -2114,6 +2207,287 @@
             <div class="modal-actions">
                 <button type="button" class="btn-subtle" onclick="closeModal('feedGoalModal')">إلغاء</button>
                 <button type="submit" class="btn-primary">🎉 تأكيد الإيداع في الحصالة</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 5.1 Unified Daily Surplus Splitter Modal (100% Cap) -->
+<div class="modal-backdrop hidden" id="harvestDailySurplusModal">
+    <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+            <div>
+                <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                    <span>⚡</span>
+                    <span>موزع الفائض الذكي الموحد (100% Surplus Splitter)</span>
+                </h3>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0;">
+                    @if($hasUnpaidDebts && $hasIncompleteGoals)
+                        وزّع فائض يوميتك بحكمة وتناغم بين سداد الديون والتحويش واليوميات دون أي تضارب!
+                    @elseif($hasIncompleteGoals)
+                        وزّع فائض يوميتك بمرونة بين حصة صندوق التحويش والمتبقي لرفع يوميات باقي الشهر!
+                    @elseif($hasUnpaidDebts)
+                        وزّع فائض يوميتك لتسريع سداد وتصفية الديون والمتبقي لرفع يوميات باقي الشهر!
+                    @else
+                        كامل الفائض يرحّل تلقائياً لدعم ورفع مخصصات يومياتك لباقي أيام الشهر!
+                    @endif
+                </p>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('harvestDailySurplusModal')">&times;</button>
+        </div>
+
+        <form id="unifiedSurplusForm" action="{{ route('surplus.allocate') }}" method="POST" class="modal-form" onsubmit="submitHarvestSurplusForm(event)">
+            @csrf
+            <input type="hidden" name="surplus_amount" id="harvestSurplusBaseInput" value="{{ $todayRemaining }}">
+
+            <!-- Surplus Stats Banner -->
+            <div class="harvest-surplus-banner">
+                <div class="harvest-stat">
+                    <span class="harvest-stat-lbl">مخصص اليوم</span>
+                    <span class="harvest-stat-val">{{ number_format($todayBaseAllowance, 0) }} ₪</span>
+                </div>
+                <div class="harvest-stat">
+                    <span class="harvest-stat-lbl">صرفته اليوم</span>
+                    <span class="harvest-stat-val" style="color: #ef4444;">{{ number_format($todayExpenses, 0) }} ₪</span>
+                </div>
+                <div class="harvest-stat highlight">
+                    <span class="harvest-stat-lbl">🟢 الفائض المتاح</span>
+                    <span class="harvest-stat-val" id="harvestSurplusDisplay">{{ number_format($todayRemaining, 0) }} ₪</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Live 100% Visual Split Bar -->
+            <div class="harvest-split-bar-wrap">
+                <div class="harvest-split-bar">
+                    @if($hasUnpaidDebts)
+                        <div class="split-seg-debt" id="splitSegDebt" style="width: 0%;"></div>
+                    @endif
+                    @if($hasIncompleteGoals)
+                        <div class="split-seg-goal" id="splitSegGoal" style="width: 0%;"></div>
+                    @endif
+                    <div class="split-seg-buffer" id="splitSegBuffer" style="width: 100%;"></div>
+                </div>
+                <div class="split-legend-row">
+                    @if($hasUnpaidDebts)
+                        <div class="split-legend-item">
+                            <span class="legend-dot" style="background: #ef4444;"></span>
+                            <span>الديون: <strong id="legendDebtPct">0%</strong></span>
+                        </div>
+                    @endif
+                    @if($hasIncompleteGoals)
+                        <div class="split-legend-item">
+                            <span class="legend-dot" style="background: #10b981;"></span>
+                            <span>صندوق التحويش: <strong id="legendGoalPct">0%</strong></span>
+                        </div>
+                    @endif
+                    <div class="split-legend-item">
+                        <span class="legend-dot" style="background: #3b82f6;"></span>
+                        <span>رفع يوميات باقي الشهر: <strong id="legendBufferPct">100%</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            @if($hasUnpaidDebts && $hasIncompleteGoals)
+                <!-- Quick Preset Strategies (When both exist) -->
+                <div style="margin-bottom: 0.65rem;">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                        ⚡ خطط توزيع ذكية سريعة:
+                    </div>
+                    <div class="strategy-presets-row">
+                        <button type="button" class="strategy-preset-btn active" id="btnStratBalanced" onclick="applySplitStrategy(40, 40)">
+                            ⚖️ متوازن (40% دين | 40% تحويش | 20% يوميات)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" id="btnStratDebtPriority" onclick="applySplitStrategy(70, 20)">
+                            🛑 أولوية الديون (70% دين | 20% تحويش)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" id="btnStratGoalPriority" onclick="applySplitStrategy(20, 70)">
+                            🎯 أولوية التحويش (20% دين | 70% تحويش)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" id="btnStratFullDebt" onclick="applySplitStrategy(100, 0)">
+                            ⚡ 100% سداد ديون
+                        </button>
+                        <button type="button" class="strategy-preset-btn" id="btnStratFullGoal" onclick="applySplitStrategy(0, 100)">
+                            💎 100% تحويش أهداف
+                        </button>
+                    </div>
+                </div>
+            @elseif($hasIncompleteGoals)
+                <!-- Quick Preset Strategies (When only goals exist) -->
+                <div style="margin-bottom: 0.65rem;">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                        ⚡ خطط تحويش سريعة للفائض:
+                    </div>
+                    <div class="strategy-presets-row">
+                        <button type="button" class="strategy-preset-btn active" onclick="applySplitStrategy(0, 50)">
+                            ⚖️ مناصفة (50% تحويش | 50% يوميات)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" onclick="applySplitStrategy(0, 75)">
+                            🎯 أولوية التحويش (75% تحويش | 25% يوميات)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" onclick="applySplitStrategy(0, 25)">
+                            🌱 حصة هادئة (25% تحويش | 75% يوميات)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" onclick="applySplitStrategy(0, 100)">
+                            💎 100% تحويش كامل
+                        </button>
+                    </div>
+                </div>
+            @elseif($hasUnpaidDebts)
+                <!-- Quick Preset Strategies (When only debts exist) -->
+                <div style="margin-bottom: 0.65rem;">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                        ⚡ خطط سداد ديون سريعة للفائض:
+                    </div>
+                    <div class="strategy-presets-row">
+                        <button type="button" class="strategy-preset-btn active" onclick="applySplitStrategy(100, 0)">
+                            ⚡ 100% سداد ديون كامل (تصفية أولاً)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" onclick="applySplitStrategy(75, 0)">
+                            🛑 تركيز عالي (75% دين | 25% يوميات)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" onclick="applySplitStrategy(50, 0)">
+                            ⚖️ مناصفة (50% دين | 50% يوميات)
+                        </button>
+                        <button type="button" class="strategy-preset-btn" onclick="applySplitStrategy(25, 0)">
+                            🛡️ حصة هادئة (25% دين | 75% يوميات)
+                        </button>
+                    </div>
+                </div>
+            @endif
+
+            <!-- CASE 1: DEBTS SECTION (Appears only if unpaid debts exist) -->
+            @if($hasUnpaidDebts)
+                <div class="alloc-block alloc-block-debt">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <span style="font-size: 1.1rem;">🛑</span>
+                            <span style="font-size: 0.9rem; font-weight: 800; color: #ef4444;">حصة تسريع سداد الديون</span>
+                        </div>
+                        <div class="harvest-pct-badge" id="badgeDebtPct" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
+                            0%
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-bottom: 0;">
+                        <div class="form-group" style="flex: 1.5;">
+                            <label style="font-size: 0.76rem;">اختر الدين المستهدف للسداد:</label>
+                            <select name="debt_id" id="allocTargetDebtSelect" class="styled-select" onchange="updateUnifiedCalculations()">
+                                @foreach($unpaidDebts as $d)
+                                    <option value="{{ $d->id }}" data-remaining="{{ $d->total_debt }}" data-name="{{ $d->name }}">
+                                        {{ $d->icon }} {{ $d->name }} (متبقي: {{ number_format($d->total_debt, 0) }} ₪)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label style="font-size: 0.76rem;">نسبة الاقتطاع للدين:</label>
+                            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                                <input type="range" min="0" max="100" value="0" class="harvest-slider" id="sliderDebtPct" style="accent-color: #ef4444;" oninput="onDebtSliderChange(this.value)">
+                                <input type="number" name="debt_percentage" min="0" max="100" value="0" class="styled-input" id="numDebtPct" style="width: 65px; text-align: center; font-weight: 800;" oninput="onDebtNumChange(this.value)">
+                                <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 0.5rem; padding-top: 0.45rem; border-top: 1px dashed rgba(239, 68, 68, 0.2); display: flex; align-items: center; gap: 0.45rem;">
+                        <input type="checkbox" name="save_debt_auto_harvest" value="1" id="chkSaveDebtAutoHarvest" style="accent-color: #ef4444; width: 16px; height: 16px; cursor: pointer;">
+                        <label for="chkSaveDebtAutoHarvest" style="font-size: 0.76rem; color: #f87171; font-weight: 700; cursor: pointer; margin: 0;">
+                            ⚡ تثبيت هذه النسبة كاقتطاع تلقائي مستمر من فائض نهاية كل يوم لهذا الدين
+                        </label>
+                    </div>
+                </div>
+            @endif
+
+            <!-- CASE 2: GOALS SECTION (Appears only if incomplete goals exist) -->
+            @if($hasIncompleteGoals)
+                <div class="alloc-block alloc-block-goal">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <span style="font-size: 1.1rem;">🎯</span>
+                            <span style="font-size: 0.9rem; font-weight: 800; color: #10b981;">حصة صندوق التحويش</span>
+                        </div>
+                        <div class="harvest-pct-badge" id="badgeGoalPct">
+                            0%
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-bottom: 0;">
+                        <div class="form-group" style="flex: 1.5;">
+                            <label style="font-size: 0.76rem;">اختر الحصالة / الهدف:</label>
+                            <select name="goal_id" id="allocTargetGoalSelect" class="styled-select" onchange="updateUnifiedCalculations()">
+                                @foreach($incompleteGoals as $g)
+                                    <option value="{{ $g->id }}" 
+                                            data-currency="{{ $g->currency ?? 'ILS' }}" 
+                                            data-rate-from-ils="{{ CurrencyService::getRate('ILS', $g->currency ?? 'ILS') }}"
+                                            data-symbol="{{ $g->currency_meta['symbol'] }}"
+                                            data-flag="{{ $g->currency_meta['flag'] }}"
+                                            data-name="{{ $g->name }}">
+                                        {{ $g->icon }} {{ $g->name }} ({{ $g->currency_meta['flag'] }} {{ $g->currency_meta['symbol'] }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label style="font-size: 0.76rem;">نسبة الاقتطاع للتحويش:</label>
+                            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                                <input type="range" min="0" max="100" value="0" class="harvest-slider" id="sliderGoalPct" oninput="onGoalSliderChange(this.value)">
+                                <input type="number" name="goal_percentage" min="0" max="100" value="0" class="styled-input" id="numGoalPct" style="width: 65px; text-align: center; font-weight: 800;" oninput="onGoalNumChange(this.value)">
+                                <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 0.5rem; padding-top: 0.45rem; border-top: 1px dashed rgba(16, 185, 129, 0.2); display: flex; align-items: center; gap: 0.45rem;">
+                        <input type="checkbox" name="save_goal_auto_harvest" value="1" id="chkSaveGoalAutoHarvest" style="accent-color: #10b981; width: 16px; height: 16px; cursor: pointer;">
+                        <label for="chkSaveGoalAutoHarvest" style="font-size: 0.76rem; color: #34d399; font-weight: 700; cursor: pointer; margin: 0;">
+                            ⚡ تثبيت هذه النسبة كاقتطاع تلقائي مستمر من فائض نهاية كل يوم لهذه الحصالة
+                        </label>
+                    </div>
+                </div>
+            @endif
+
+            <!-- CASE 3: NEITHER DEBTS NOR GOALS (Celebratory state) -->
+            @if(!$hasUnpaidDebts && !$hasIncompleteGoals)
+                <div class="harvest-all-done-card">
+                    <div class="all-done-icon">🌟</div>
+                    <div class="all-done-title">ما شاء الله! ذمتك بريئة وجميع أهدافك مكتملة 100%</div>
+                    <div class="all-done-desc">
+                        لا توجد عليك أي ديون نشطة، وجميع أهداف وصناديق التحويش مكتملة بالكامل!
+                        <br>
+                        كامل الفائض المتاح (<strong>{{ number_format($todayRemaining, 0) }} ₪</strong>) سيُرحل تلقائياً لدعم ورفع مخصصات يومياتك لباقي أيام الشهر دون الحاجة لأي توزيع يدوي.
+                    </div>
+                </div>
+            @endif
+
+            <!-- Live Calculation & Simulation Card -->
+            <div class="harvest-simulation-card">
+                @if($hasUnpaidDebts)
+                    <div class="sim-row" id="simRowDebt">
+                        <span class="sim-label" style="color: #ef4444;">🛑 خصم لسداد الدين:</span>
+                        <span class="sim-val" id="simValDebt" style="color: #ef4444; font-weight: 800;">- 0.00 ₪</span>
+                    </div>
+                @endif
+                @if($hasIncompleteGoals)
+                    <div class="sim-row highlight" id="simRowGoal">
+                        <span class="sim-label" style="color: #10b981;">🎯 إضافة لحصالة التحويش:</span>
+                        <span class="sim-val-goal" id="simValGoal">+ 0.00 $</span>
+                    </div>
+                @endif
+                <div class="sim-row muted">
+                    <span class="sim-label" style="color: #3b82f6;">🛡️ المتبقي لرفع يوميات باقي الشهر:</span>
+                    <span class="sim-val-left" id="simValBuffer" style="color: #3b82f6; font-weight: 800;">0.00 ₪</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-subtle" onclick="closeModal('harvestDailySurplusModal')">إلغاء</button>
+                @if($hasUnpaidDebts || $hasIncompleteGoals)
+                    <button type="submit" class="btn-primary" id="btnConfirmUnifiedHarvest">
+                        <span>🎉 تأكيد توزيع الفائض</span>
+                    </button>
+                @else
+                    <button type="button" class="btn-primary" onclick="closeModal('harvestDailySurplusModal')">
+                        <span>👍 ممتاز، استمرار</span>
+                    </button>
+                @endif
             </div>
         </form>
     </div>
@@ -2496,6 +2870,161 @@
 
         <div class="modal-actions">
             <button type="button" class="btn-subtle" onclick="closeModal('harvestLogsModal')">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- 13. Activate Goal Harvest Modal -->
+<div class="modal-backdrop hidden" id="activateGoalHarvestModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>⚡ تفعيل الاقتطاع التلقائي من الفائض لحصالة التحويش</h3>
+            <button class="modal-close-btn" onclick="closeModal('activateGoalHarvestModal')">&times;</button>
+        </div>
+        <form id="activateGoalHarvestForm" action="" method="POST" class="modal-form">
+            @csrf
+
+            <div class="debt-balance-block" style="margin-bottom: 1rem; border-color: rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.06));">
+                <div>
+                    <div style="font-weight: 800; font-size: 1rem; color: #10b981;" id="activateGoalHarvestName">اسم الحصالة</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8;">المبلغ المتبقي لاكتمال الهدف</div>
+                </div>
+                <div class="debt-balance-amount" id="activateGoalHarvestDue" style="color: #10b981;">0.00 $</div>
+            </div>
+
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 0.85rem; font-size: 0.85rem; color: #d1d5db; line-height: 1.6; margin-bottom: 1rem;">
+                <div style="font-weight: 800; color: #34d399; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>💡</span> <span>كيف يعمل التحويش التلقائي من الفوائض؟</span>
+                </div>
+                <div>مع نهاية كل يوم (عند منتصف الليل 🌙)، يفحص النظام ميزانيتك اليومية:</div>
+                <div style="direction: ltr; text-align: center; font-weight: 800; color: #10b981; margin: 0.4rem 0; font-family: monospace; font-size: 0.95rem;">
+                    فائض اليوم = اليومية المسموحة - ما صُرف فعلياً
+                </div>
+                <div>إذا كان الفائض أكبر من 0: يقتطع النظام تلقائياً النسبة التي تحددها ويودعها فوراً في حصالتك بعملتها المختارة، والمتبقي يرحل لدعم باقي أيام الشهر. وإذا صُرفت اليومية كاملة فلا يُخصم شيء إطلاقاً!</div>
+            </div>
+
+            <div class="form-group">
+                <label>نسبة الاستقطاع من الفائض اليومي: *</label>
+                <div class="form-type-pills">
+                    <label class="type-pill active" onclick="setGoalHarvestRatioPill(this, 50)">
+                        <input type="radio" name="ratio_preset" value="50" checked>
+                        <span>⚖️ 50% من الفائض (متوازن - موصى به)</span>
+                    </label>
+                    <label class="type-pill" onclick="setGoalHarvestRatioPill(this, 75)">
+                        <input type="radio" name="ratio_preset" value="75">
+                        <span>🎯 75% من الفائض (تحويش سريع)</span>
+                    </label>
+                    <label class="type-pill" onclick="setGoalHarvestRatioPill(this, 100)">
+                        <input type="radio" name="ratio_preset" value="100">
+                        <span>💎 100% من الفائض (اقتناص كامل الفائض)</span>
+                    </label>
+                    <label class="type-pill" onclick="setGoalHarvestRatioPill(this, 25)">
+                        <input type="radio" name="ratio_preset" value="25">
+                        <span>🌱 25% من الفائض (خفيف وهادئ)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>أو حدد نسبة مخصصة بدقة:</label>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="range" min="1" max="100" value="50" class="harvest-slider" id="modalGoalHarvestSlider" oninput="onModalGoalHarvestSlider(this.value)">
+                    <input type="number" name="ratio" id="modalGoalHarvestRatioInput" value="50" min="1" max="100" class="styled-input" style="width: 75px; text-align: center; font-weight: 800;" oninput="onModalGoalHarvestInput(this.value)" required>
+                    <span style="font-weight: 800; font-size: 1rem; color: var(--text-secondary);">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>سقف أقصى للاستقطاع اليومي بالشيكل (اختياري):</label>
+                <input type="number" name="max_daily" id="modalGoalHarvestMaxDaily" class="styled-input" placeholder="مثال: 20 (اتركه فارغاً دون سقف)">
+                <small style="color: var(--text-secondary); font-size: 0.75rem;">تحديد حد أقصى (مثلاً: مهما كبُر الفائض اليومي، لا تقتطع أكثر من 20 ₪ في اليوم الواحد).</small>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-subtle" onclick="closeModal('activateGoalHarvestModal')">إلغاء</button>
+                <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    🚀 حفظ وتفعيل الاقتطاع التلقائي
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 14. Goal Harvest Logs Modal -->
+<div class="modal-backdrop hidden" id="goalHarvestLogsModal">
+    <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+            <div>
+                <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                    <span>📜</span>
+                    <span id="goalHarvestLogsTitle">سجل الاقتطاعات التلقائية للفوائض</span>
+                </h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">
+                    توثيق يومي شفاف: مخصص اليومية، المصروف، الفائض، والمبلغ المحول تلقائياً للحصالة
+                </p>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('goalHarvestLogsModal')">&times;</button>
+        </div>
+
+        <div style="padding: 1.25rem 1.5rem;">
+            <!-- Today's Live In-Progress Forecast Card -->
+            <div id="goalHarvestForecastCard" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="font-weight: 800; color: #10b981; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <span class="pulse-dot-green"></span>
+                        <span>رصد اليوم الحالي (حتى منتصف الليل 🌙)</span>
+                    </div>
+                    <span style="font-size: 0.78rem; color: #9ca3af;" id="goalForecastDate">{{ date('Y/m/d') }}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; text-align: center;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 8px;">
+                        <span style="font-size: 0.75rem; color: #9ca3af; display: block;">اليومية المسموحة</span>
+                        <strong style="font-size: 1.1rem; color: #f9fafb;" id="goalForecastAllowance">0</strong> ₪
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 8px;">
+                        <span style="font-size: 0.75rem; color: #9ca3af; display: block;">المصروف اليوم</span>
+                        <strong style="font-size: 1.1rem; color: #f87171;" id="goalForecastSpent">0</strong> ₪
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 8px;">
+                        <span style="font-size: 0.75rem; color: #9ca3af; display: block;">الفائض المتوقع</span>
+                        <strong style="font-size: 1.1rem; color: #34d399;" id="goalForecastSurplus">0</strong> ₪
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.2); padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4);">
+                        <span style="font-size: 0.75rem; color: #10b981; display: block; font-weight: 700;">المتوقع اقتطاعه للحصالة</span>
+                        <strong style="font-size: 1.15rem; color: #34d399;" id="goalForecastHarvest">0</strong>
+                    </div>
+                </div>
+                <div style="font-size: 0.76rem; color: #9ca3af; margin-top: 0.5rem; text-align: center;">
+                    ℹ️ يتم تثبيت وترحيل الفائض تلقائياً عند انتهاء اليوم وبداية اليوم الجديد (منتصف الليل).
+                </div>
+            </div>
+
+            <!-- Historical Table -->
+            <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.15);" class="styled-scrollbar">
+                <table class="harvest-logs-table" style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>اليومية المسموحة</th>
+                            <th>ما صُرف فعلياً</th>
+                            <th>فائض اليوم</th>
+                            <th>المقتطع للحصالة</th>
+                            <th>البيان والتفاصيل</th>
+                        </tr>
+                    </thead>
+                    <tbody id="goalHarvestLogsTbody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                جاري تحميل السجلات...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-subtle" onclick="closeModal('goalHarvestLogsModal')">إغلاق</button>
         </div>
     </div>
 </div>
@@ -3343,5 +3872,354 @@
             if(tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1rem; color:#ef4444;">حدث خطأ أثناء تحميل السجلات</td></tr>`;
         }
     }
+
+    // Goal Auto-Harvest Modal & Logs Helpers
+    window.openActivateGoalHarvestModal = function(goalId, goalName, remainingNeeded, currency, symbol, currentRatio = 50, currentMaxDaily = 0) {
+        const form = document.getElementById('activateGoalHarvestForm');
+        if (form) form.action = `/goals/${goalId}/harvest/activate`;
+
+        const nameEl = document.getElementById('activateGoalHarvestName');
+        const dueEl = document.getElementById('activateGoalHarvestDue');
+        if (nameEl) nameEl.textContent = goalName;
+        if (dueEl) dueEl.textContent = `${parseFloat(remainingNeeded).toFixed(2)} ${symbol || currency}`;
+
+        const slider = document.getElementById('modalGoalHarvestSlider');
+        const numInput = document.getElementById('modalGoalHarvestRatioInput');
+        const maxDailyInput = document.getElementById('modalGoalHarvestMaxDaily');
+
+        if (slider) slider.value = currentRatio;
+        if (numInput) numInput.value = currentRatio;
+        if (maxDailyInput) maxDailyInput.value = currentMaxDaily > 0 ? currentMaxDaily : '';
+
+        // Select matching pill
+        document.querySelectorAll('#activateGoalHarvestModal .type-pill').forEach(pill => {
+            const val = parseInt(pill.querySelector('input')?.value) || 0;
+            pill.classList.toggle('active', val === currentRatio);
+        });
+
+        openModal('activateGoalHarvestModal');
+    };
+
+    window.setGoalHarvestRatioPill = function(pill, ratio) {
+        document.querySelectorAll('#activateGoalHarvestModal .type-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const slider = document.getElementById('modalGoalHarvestSlider');
+        const numInput = document.getElementById('modalGoalHarvestRatioInput');
+        if (slider) slider.value = ratio;
+        if (numInput) numInput.value = ratio;
+    };
+
+    window.onModalGoalHarvestSlider = function(val) {
+        const numInput = document.getElementById('modalGoalHarvestRatioInput');
+        if (numInput) numInput.value = val;
+        document.querySelectorAll('#activateGoalHarvestModal .type-pill').forEach(p => {
+            const v = parseInt(p.querySelector('input')?.value) || 0;
+            p.classList.toggle('active', v === parseInt(val));
+        });
+    };
+
+    window.onModalGoalHarvestInput = function(val) {
+        const slider = document.getElementById('modalGoalHarvestSlider');
+        let v = parseInt(val) || 0;
+        v = Math.max(1, Math.min(100, v));
+        if (slider) slider.value = v;
+        document.querySelectorAll('#activateGoalHarvestModal .type-pill').forEach(p => {
+            const pv = parseInt(p.querySelector('input')?.value) || 0;
+            p.classList.toggle('active', pv === v);
+        });
+    };
+
+    window.openGoalHarvestLogsModal = async function(goalId, goalName) {
+        const titleEl = document.getElementById('goalHarvestLogsTitle');
+        if (titleEl) titleEl.textContent = `سجل الاقتطاعات التلقائية لحصالة [${goalName}]`;
+
+        const tbody = document.getElementById('goalHarvestLogsTbody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#94a3b8;">جاري التحميل...</td></tr>`;
+
+        openModal('goalHarvestLogsModal');
+
+        try {
+            const res = await fetch(`/goals/${goalId}/harvest/logs`);
+            const data = await res.json();
+
+            if (data.success) {
+                // Forecast
+                const f = data.forecast;
+                if (f) {
+                    const allowEl = document.getElementById('goalForecastAllowance');
+                    const spentEl = document.getElementById('goalForecastSpent');
+                    const surplusEl = document.getElementById('goalForecastSurplus');
+                    const harvestEl = document.getElementById('goalForecastHarvest');
+
+                    if (allowEl) allowEl.textContent = Math.round(f.allowance);
+                    if (spentEl) spentEl.textContent = Math.round(f.spent);
+                    if (surplusEl) surplusEl.textContent = Math.round(f.surplus);
+                    if (harvestEl) harvestEl.textContent = `+${parseFloat(f.expected_harvest_goal).toFixed(2)} ${f.currency} (${Math.round(f.expected_harvest_ils)} ₪)`;
+                }
+
+                // Logs Table
+                const logs = data.logs || [];
+                if (logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:#9ca3af;">لا توجد سجلات بعد. سيبدأ الاقتطاع التلقائي مع أول فائض متبقي بنهاية اليوم 🌙</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                logs.forEach(log => {
+                    const surplus = parseFloat(log.surplus_amount || 0);
+                    const harvestGoal = parseFloat(log.harvested_in_goal_currency || log.harvested_amount || 0);
+                    const isZero = surplus <= 0 || harvestGoal <= 0;
+
+                    html += `
+                        <tr style="${isZero ? 'opacity: 0.75;' : ''}">
+                            <td style="font-weight: 700;">${log.date}</td>
+                            <td>${parseFloat(log.day_allowance).toFixed(1)} ₪</td>
+                            <td style="color: #f87171;">${parseFloat(log.day_spent).toFixed(1)} ₪</td>
+                            <td style="color: ${surplus > 0 ? '#34d399' : '#9ca3af'}; font-weight: 700;">
+                                ${surplus > 0 ? '+' : ''}${surplus.toFixed(1)} ₪
+                            </td>
+                            <td style="color: ${harvestGoal > 0 ? '#10b981' : '#9ca3af'}; font-weight: 800;">
+                                ${harvestGoal > 0 ? '+' + harvestGoal.toFixed(2) + ' ' + (log.currency || 'ILS') : '0'}
+                            </td>
+                            <td style="font-size: 0.8rem; color: #d1d5db;">
+                                ${log.note || '—'}
+                            </td>
+                        </tr>
+                    `;
+                });
+                if (tbody) tbody.innerHTML = html;
+            }
+        } catch (err) {
+            console.error('Error loading goal harvest logs:', err);
+            if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#ef4444;">حدث خطأ أثناء تحميل السجلات</td></tr>`;
+        }
+    };
+
+    window.toggleNewGoalHarvestOptions = function(checked) {
+        const wrap = document.getElementById('newGoalHarvestOptionsWrap');
+        if (wrap) wrap.classList.toggle('hidden', !checked);
+    };
+
+    // Unified Daily Surplus Splitter System
+    let currentHarvestSurplus = 0;
+    const hasUnpaidDebts = {{ $hasUnpaidDebts ? 'true' : 'false' }};
+    const hasIncompleteGoals = {{ $hasIncompleteGoals ? 'true' : 'false' }};
+
+    window.openDailySurplusHarvestModal = function(surplus) {
+        currentHarvestSurplus = parseFloat(surplus) || 0;
+        const baseInput = document.getElementById('harvestSurplusBaseInput');
+        const dispEl = document.getElementById('harvestSurplusDisplay');
+        if (baseInput) baseInput.value = currentHarvestSurplus;
+        if (dispEl) dispEl.textContent = `${Math.round(currentHarvestSurplus)} ₪`;
+
+        if (hasUnpaidDebts && hasIncompleteGoals) {
+            applySplitStrategy(40, 40);
+        } else if (hasIncompleteGoals) {
+            applySplitStrategy(0, 50);
+        } else if (hasUnpaidDebts) {
+            applySplitStrategy(50, 0);
+        } else {
+            applySplitStrategy(0, 0);
+        }
+
+        updateUnifiedCalculations();
+        openModal('harvestDailySurplusModal');
+    };
+
+    window.applySplitStrategy = function(debtPct, goalPct) {
+        debtPct = parseInt(debtPct) || 0;
+        goalPct = parseInt(goalPct) || 0;
+
+        const sliderDebt = document.getElementById('sliderDebtPct');
+        const numDebt = document.getElementById('numDebtPct');
+        const sliderGoal = document.getElementById('sliderGoalPct');
+        const numGoal = document.getElementById('numGoalPct');
+
+        if (sliderDebt) sliderDebt.value = debtPct;
+        if (numDebt) numDebt.value = debtPct;
+        if (sliderGoal) sliderGoal.value = goalPct;
+        if (numGoal) numGoal.value = goalPct;
+
+        document.querySelectorAll('.strategy-preset-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('onclick')?.includes(`${debtPct}, ${goalPct}`));
+        });
+
+        updateUnifiedCalculations();
+    };
+
+    window.onDebtSliderChange = function(val) {
+        let debt = parseInt(val) || 0;
+        debt = Math.max(0, Math.min(100, debt));
+        const numDebt = document.getElementById('numDebtPct');
+        if (numDebt) numDebt.value = debt;
+
+        if (hasIncompleteGoals) {
+            const sliderGoal = document.getElementById('sliderGoalPct');
+            const numGoal = document.getElementById('numGoalPct');
+            let goal = parseInt(sliderGoal ? sliderGoal.value : 0) || 0;
+            if ((debt + goal) > 100) {
+                goal = 100 - debt;
+                if (sliderGoal) sliderGoal.value = goal;
+                if (numGoal) numGoal.value = goal;
+            }
+        }
+
+        clearActiveStrategyPill();
+        updateUnifiedCalculations();
+    };
+
+    window.onDebtNumChange = function(val) {
+        let debt = parseInt(val);
+        if (isNaN(debt)) return;
+        debt = Math.max(0, Math.min(100, debt));
+        const sliderDebt = document.getElementById('sliderDebtPct');
+        if (sliderDebt) sliderDebt.value = debt;
+
+        if (hasIncompleteGoals) {
+            const sliderGoal = document.getElementById('sliderGoalPct');
+            const numGoal = document.getElementById('numGoalPct');
+            let goal = parseInt(sliderGoal ? sliderGoal.value : 0) || 0;
+            if ((debt + goal) > 100) {
+                goal = 100 - debt;
+                if (sliderGoal) sliderGoal.value = goal;
+                if (numGoal) numGoal.value = goal;
+            }
+        }
+
+        clearActiveStrategyPill();
+        updateUnifiedCalculations();
+    };
+
+    window.onGoalSliderChange = function(val) {
+        let goal = parseInt(val) || 0;
+        goal = Math.max(0, Math.min(100, goal));
+        const numGoal = document.getElementById('numGoalPct');
+        if (numGoal) numGoal.value = goal;
+
+        if (hasUnpaidDebts) {
+            const sliderDebt = document.getElementById('sliderDebtPct');
+            const numDebt = document.getElementById('numDebtPct');
+            let debt = parseInt(sliderDebt ? sliderDebt.value : 0) || 0;
+            if ((debt + goal) > 100) {
+                debt = 100 - goal;
+                if (sliderDebt) sliderDebt.value = debt;
+                if (numDebt) numDebt.value = debt;
+            }
+        }
+
+        clearActiveStrategyPill();
+        updateUnifiedCalculations();
+    };
+
+    window.onGoalNumChange = function(val) {
+        let goal = parseInt(val);
+        if (isNaN(goal)) return;
+        goal = Math.max(0, Math.min(100, goal));
+        const sliderGoal = document.getElementById('sliderGoalPct');
+        if (sliderGoal) sliderGoal.value = goal;
+
+        if (hasUnpaidDebts) {
+            const sliderDebt = document.getElementById('sliderDebtPct');
+            const numDebt = document.getElementById('numDebtPct');
+            let debt = parseInt(sliderDebt ? sliderDebt.value : 0) || 0;
+            if ((debt + goal) > 100) {
+                debt = 100 - goal;
+                if (sliderDebt) sliderDebt.value = debt;
+                if (numDebt) numDebt.value = debt;
+            }
+        }
+
+        clearActiveStrategyPill();
+        updateUnifiedCalculations();
+    };
+
+    window.clearActiveStrategyPill = function() {
+        document.querySelectorAll('.strategy-preset-btn').forEach(btn => btn.classList.remove('active'));
+    };
+
+    window.updateUnifiedCalculations = function() {
+        const surplus = currentHarvestSurplus > 0 ? currentHarvestSurplus : (parseFloat(document.getElementById('harvestSurplusBaseInput')?.value) || 0);
+
+        const debtPct = hasUnpaidDebts ? (parseInt(document.getElementById('sliderDebtPct')?.value) || 0) : 0;
+        const goalPct = hasIncompleteGoals ? (parseInt(document.getElementById('sliderGoalPct')?.value) || 0) : 0;
+        const bufferPct = Math.max(0, 100 - (debtPct + goalPct));
+
+        // Update Badges & Legends
+        const bDebt = document.getElementById('badgeDebtPct');
+        const bGoal = document.getElementById('badgeGoalPct');
+        const lDebt = document.getElementById('legendDebtPct');
+        const lGoal = document.getElementById('legendGoalPct');
+        const lBuffer = document.getElementById('legendBufferPct');
+
+        if (bDebt) bDebt.textContent = `${debtPct}%`;
+        if (bGoal) bGoal.textContent = `${goalPct}%`;
+        if (lDebt) lDebt.textContent = `${debtPct}%`;
+        if (lGoal) lGoal.textContent = `${goalPct}%`;
+        if (lBuffer) lBuffer.textContent = `${bufferPct}%`;
+
+        // Update Split Progress Bar Segments
+        const segDebt = document.getElementById('splitSegDebt');
+        const segGoal = document.getElementById('splitSegGoal');
+        const segBuffer = document.getElementById('splitSegBuffer');
+
+        if (segDebt) segDebt.style.width = `${debtPct}%`;
+        if (segGoal) segGoal.style.width = `${goalPct}%`;
+        if (segBuffer) segBuffer.style.width = `${bufferPct}%`;
+
+        // Calculate Amounts
+        const debtILS = Math.round(surplus * (debtPct / 100) * 100) / 100;
+        const goalILS = Math.round(surplus * (goalPct / 100) * 100) / 100;
+        const bufferILS = Math.max(0, Math.round((surplus - (debtILS + goalILS)) * 100) / 100);
+
+        // Goal Currency Conversion
+        const goalSelect = document.getElementById('allocTargetGoalSelect');
+        const selectedGoalOpt = goalSelect ? goalSelect.options[goalSelect.selectedIndex] : null;
+        const goalRate = selectedGoalOpt ? parseFloat(selectedGoalOpt.getAttribute('data-rate-from-ils') || 1) : 1;
+        const goalSymbol = selectedGoalOpt ? selectedGoalOpt.getAttribute('data-symbol') : '₪';
+        const goalCurrency = selectedGoalOpt ? selectedGoalOpt.getAttribute('data-currency') : 'ILS';
+
+        const goalConverted = goalCurrency === 'ILS' ? goalILS : Math.round(goalILS * goalRate * 100) / 100;
+
+        // Simulation Card Values
+        const simDebt = document.getElementById('simValDebt');
+        const simGoal = document.getElementById('simValGoal');
+        const simBuffer = document.getElementById('simValBuffer');
+        const btnSubmit = document.getElementById('btnConfirmUnifiedHarvest');
+
+        if (simDebt) simDebt.textContent = `- ${debtILS.toFixed(2)} ₪`;
+        if (simGoal) simGoal.textContent = `+ ${goalConverted.toFixed(2)} ${goalSymbol} (${goalILS.toFixed(0)} ₪)`;
+        if (simBuffer) simBuffer.textContent = `${bufferILS.toFixed(2)} ₪`;
+
+        if (btnSubmit) {
+            if (!hasUnpaidDebts && hasIncompleteGoals) {
+                const label = goalILS > 0
+                    ? `تأكيد تحويش (+${goalConverted.toFixed(goalCurrency === 'USD' ? 2 : 0)} ${goalSymbol}) والباقي (${bufferILS.toFixed(0)} ₪) لليوميات`
+                    : `ترحيل كامل الفائض (${bufferILS.toFixed(0)} ₪) لليوميات`;
+                btnSubmit.innerHTML = `<span>🎉 ${label}</span>`;
+            } else if (hasUnpaidDebts && !hasIncompleteGoals) {
+                const label = debtILS > 0
+                    ? `تأكيد سداد الدين (-${debtILS.toFixed(0)} ₪) والباقي (${bufferILS.toFixed(0)} ₪) لليوميات`
+                    : `ترحيل كامل الفائض (${bufferILS.toFixed(0)} ₪) لليوميات`;
+                btnSubmit.innerHTML = `<span>🎉 ${label}</span>`;
+            } else {
+                let actionDesc = [];
+                if (debtILS > 0) actionDesc.push(`${debtILS.toFixed(0)} ₪ دين`);
+                if (goalILS > 0) actionDesc.push(`${goalConverted.toFixed(goalCurrency === 'USD' ? 2 : 0)} ${goalSymbol} تحويش`);
+                const label = actionDesc.length > 0 ? `تأكيد توزيع (${actionDesc.join(' + ')})` : `ترحيل كامل الفائض (${bufferILS.toFixed(0)} ₪) لليوميات`;
+                btnSubmit.innerHTML = `<span>🎉 ${label}</span>`;
+            }
+        }
+    };
+
+    window.submitHarvestSurplusForm = function(e) {
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 80,
+                spread: 75,
+                origin: { y: 0.6 }
+            });
+        }
+        return true;
+    };
 </script>
 @endpush

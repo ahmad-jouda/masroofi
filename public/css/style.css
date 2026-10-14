@@ -5165,10 +5165,336 @@ input.flatpickr-custom-input {
   gap: 0.5rem;
 }
 
+/* ==========================================================================
+   DAILY SURPLUS HARVEST TO SAVINGS GOALS (SMART SWEEPER SYSTEM)
+   ========================================================================== */
+.today-harvest-cta-wrap {
+  margin: 0.85rem 0 0.5rem 0;
+  width: 100%;
+}
 
+.btn-today-harvest-pill {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(59, 130, 246, 0.12) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.38);
+  border-radius: 14px;
+  padding: 0.65rem 1rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: right;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.08);
+}
 
+.btn-today-harvest-pill:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%);
+  border-color: rgba(16, 185, 129, 0.65);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+}
 
+.harvest-icon-glow {
+  font-size: 1.35rem;
+  background: rgba(16, 185, 129, 0.2);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
 
+.harvest-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+}
 
+.harvest-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
 
+.harvest-title strong {
+  color: #10b981;
+}
 
+.harvest-sub {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.harvest-arrow-pill {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-today-harvest-pill:hover .harvest-arrow-pill {
+  background: #10b981;
+  color: white;
+}
+
+.harvest-surplus-banner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  background: var(--card-bg-subtle);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 0.85rem;
+  text-align: center;
+}
+
+.harvest-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.harvest-stat-lbl {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.harvest-stat-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: var(--font-numbers);
+}
+
+.harvest-stat.highlight .harvest-stat-val {
+  color: #10b981;
+  font-size: 1.05rem;
+}
+
+.harvest-pct-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-family: var(--font-numbers);
+}
+
+.modal-card.modal-card-lg {
+  max-width: 620px;
+  width: 95%;
+}
+
+.harvest-split-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.85rem 0 1rem;
+}
+
+.harvest-split-bar {
+  display: flex;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.split-seg-debt {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.split-seg-goal {
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.split-seg-buffer {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.split-legend-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.split-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.strategy-presets-row {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.strategy-preset-btn {
+  background: var(--card-bg-subtle, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
+  color: var(--text-secondary, #94a3b8);
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+}
+
+.strategy-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #fff);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.strategy-preset-btn.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.alloc-block {
+  background: var(--card-bg-subtle, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  padding: 0.9rem 1.05rem;
+  margin-bottom: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  transition: border-color 0.2s ease;
+}
+
+.alloc-block-debt {
+  border-inline-start: 4px solid #ef4444;
+}
+
+.alloc-block-debt:focus-within {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.alloc-block-goal {
+  border-inline-start: 4px solid #10b981;
+}
+
+.alloc-block-goal:focus-within {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.harvest-slider {
+  flex: 1;
+  accent-color: #10b981;
+  cursor: pointer;
+  height: 6px;
+  border-radius: 999px;
+}
+
+.harvest-all-done-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.all-done-icon {
+  font-size: 2.2rem;
+  animation: pulse-glow 2s infinite;
+}
+
+.all-done-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.all-done-desc {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.harvest-simulation-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.06) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 16px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sim-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.86rem;
+}
+
+.sim-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.sim-val {
+  font-weight: 800;
+  font-family: var(--font-numbers);
+}
+
+.sim-row.highlight .sim-label {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.sim-val-goal {
+  color: #10b981;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: var(--font-numbers);
+}
+
+.sim-row.muted .sim-label,
+.sim-val-left {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

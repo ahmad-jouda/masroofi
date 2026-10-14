@@ -12,6 +12,7 @@ use App\Models\UserSetting;
 use App\Models\Wishlist;
 use App\Services\CurrencyService;
 use App\Services\DebtSurplusHarvestService;
+use App\Services\GoalSurplusHarvestService;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -34,7 +35,7 @@ class DashboardController extends Controller
         );
 
         $envelopes = Envelope::with('transactions')->get();
-        $goals = SavingGoal::all();
+        $goals = SavingGoal::with('harvestLogs')->get();
         $recentTransactions = Transaction::with(['envelope', 'goal', 'user'])->latest('date')->latest('id')->take(6)->get();
         $allTransactions = Transaction::with(['envelope', 'goal', 'user'])->latest('date')->latest('id')->get();
         $wishlist = Wishlist::latest()->get();
@@ -176,8 +177,9 @@ class DashboardController extends Controller
             ? min(100, (int) round(($todayExpenses / $todayBaseAllowance) * 100))
             : ($todayExpenses > 0 ? 100 : 0);
 
-        // Process active daily surplus harvesting for debts automatically
+        // Process active daily surplus harvesting for debts and saving goals automatically
         DebtSurplusHarvestService::processActiveHarvests((float) $safeDaily);
+        GoalSurplusHarvestService::processActiveHarvests((float) $safeDaily);
 
         $debts = Debt::with(['records', 'harvestLogs'])->latest()->get();
         $totalDebtsOwed = (float) $debts->where('status', 'active')->sum('total_debt');
