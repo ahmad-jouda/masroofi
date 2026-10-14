@@ -14,9 +14,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="مصروفي Pro">
-    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" href="{{ asset('icons/icon-192.png') }}">
-    <link rel="shortcut icon" href="{{ asset('icons/icon-192.png') }}">
+    <meta name="theme-color" content="#090d16">
+    <link rel="manifest" href="{{ asset('manifest.json') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}?v={{ time() }}">
+    <link rel="icon" type="image/png" href="{{ asset('icons/icon-192.png') }}?v={{ time() }}">
+    <link rel="shortcut icon" href="{{ asset('icons/icon-192.png') }}?v={{ time() }}">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,16 +121,47 @@
     </script>
 </head>
 <body class="theme-{{ $settings->theme ?? 'dark' }}">
+    <!-- App Native Splash Screen (Luxury Fintech Launch Experience) -->
+    <div id="appSplashScreen" class="app-splash-screen">
+        <div class="splash-particles-bg"></div>
+        <div class="splash-content">
+            <div class="splash-logo-wrapper">
+                <div class="splash-logo-halo"></div>
+                <img src="{{ asset('icons/icon-512.png') }}?v={{ time() }}" alt="مصروفي Pro" class="splash-logo-img">
+            </div>
+            
+            <div class="splash-text-group">
+                <div class="splash-brand-title">
+                    <span class="splash-brand-main">مصروفي</span>
+                    <span class="splash-badge-pro">PRO</span>
+                </div>
+                <p class="splash-brand-tagline">المحفظة المالية الذكية وحصالة الأهداف</p>
+            </div>
+
+            <div class="splash-loader-wrap">
+                <div class="splash-progress-track">
+                    <div class="splash-progress-bar" id="splashProgressBar"></div>
+                </div>
+                <div class="splash-status-text" id="splashStatusText">
+                    <span class="splash-status-dot"></span>
+                    <span>جاري تشغيل محفظتك الآمنة...</span>
+                </div>
+            </div>
+
+            <div class="splash-footer-badge">
+                <span>🛡️ تشفير آمن 100% • يعمل بدون إنترنت</span>
+            </div>
+        </div>
+    </div>
+
     <div id="app" class="app-container">
         <!-- TOP NAVIGATION -->
         <header class="top-nav" id="mainHeader">
             <!-- Brand & Current Workspace -->
             <div class="nav-brand">
                 <a href="{{ route('dashboard') }}" class="brand-link">
-                    <div class="logo-icon-wrap">
-                        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
+                    <div class="logo-icon-wrap" style="background: transparent; border: none; padding: 0;">
+                        <img src="{{ asset('icons/icon-192.png') }}?v={{ time() }}" alt="مصروفي Pro" style="width: 36px; height: 36px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
                     </div>
                     <div class="brand-text">
                         <div class="brand-title-row">
@@ -274,6 +307,14 @@
                                 </button>
                             </form>
                         @endif
+
+                        <button type="button" class="user-dropdown-item" onclick="closeUserDropdown(); openOnboardingModal();">
+                            <span class="dropdown-item-icon">✨</span>
+                            <div class="dropdown-item-text">
+                                <span class="item-title">شاشات البداية ومميزات التطبيق</span>
+                                <span class="item-desc">جولة استعراضية لأهم مزايا مصروفي Pro</span>
+                            </div>
+                        </button>
 
                         <div class="user-dropdown-divider"></div>
 
@@ -1167,6 +1208,105 @@
         </div>
     </div>
 
+    <!-- ✨ Interactive Welcome Onboarding Tour Modal -->
+    <div class="modal-backdrop hidden" id="onboardingModal" style="z-index: 999998;">
+        <div class="modal-card onboarding-card">
+            <div class="onboarding-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="onboarding-step-pill" id="onboardingStepIndicator">ميزة 1 من 4</span>
+                    <span style="font-size: 0.85rem; font-weight: 800; color: var(--text-primary);">✨ جولة البداية</span>
+                </div>
+                <button type="button" class="onboarding-skip-btn" onclick="closeOnboardingModal()">تخطي الجولة ✕</button>
+            </div>
+
+            <div class="onboarding-body">
+                <!-- Slide 1: الراتب الذكي -->
+                <div class="onboarding-slide active" id="onboardingSlide1">
+                    <div class="onboarding-icon-wrap">
+                        <span>🏦</span>
+                    </div>
+                    <h3 class="onboarding-slide-title">توزيع الراتب الذكي (50/30/20)</h3>
+                    <div class="onboarding-tags-row">
+                        <span class="onboarding-tag">📱 رواتب التطبيق الصافية</span>
+                        <span class="onboarding-tag">💵 كاش مستقل</span>
+                        <span class="onboarding-tag">🛡️ ميزانية صفرية</span>
+                    </div>
+                    <p class="onboarding-slide-desc">
+                        نظام ذكي يعزل راتب التطبيق ويوزعه تلقائياً بدقة (50% للاحتياجات، 30% للرغبات، و 20% لتحويش الطوارئ)، مع إبقاء مبالغ الكاش النقدية كسيولة مستقلة بالكامل.
+                    </p>
+                </div>
+
+                <!-- Slide 2: المؤشر المالي ومتبقي اليومية -->
+                <div class="onboarding-slide" id="onboardingSlide2">
+                    <div class="onboarding-icon-wrap" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.15)); border-color: rgba(245, 158, 11, 0.4);">
+                        <span>⚡</span>
+                    </div>
+                    <h3 class="onboarding-slide-title">المؤشر المالي ومتبقي اليومية</h3>
+                    <div class="onboarding-tags-row">
+                        <span class="onboarding-tag">⏱️ حساب لحظي</span>
+                        <span class="onboarding-tag">🚫 منع نفاذ الراتب</span>
+                        <span class="onboarding-tag">📊 مؤشر آمن</span>
+                    </div>
+                    <p class="onboarding-slide-desc">
+                        بوصلتك المالية التي تحسب لك كل يوم بمقدار ما يحق لك صرفه بأمان. وعند تسجيل أي مصروف، تريك الشاشة فورياً التأثير اللحظي على متبقي يوميتك ومسار الشهر.
+                    </p>
+                </div>
+
+                <!-- Slide 3: الحصالات والتهدئة 48 ساعة -->
+                <div class="onboarding-slide" id="onboardingSlide3">
+                    <div class="onboarding-icon-wrap" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.15)); border-color: rgba(59, 130, 246, 0.4);">
+                        <span>🪙</span>
+                    </div>
+                    <h3 class="onboarding-slide-title">حصالات الأهداف والتهدئة 48 ساعة</h3>
+                    <div class="onboarding-tags-row">
+                        <span class="onboarding-tag">🎯 أهداف مخصصة</span>
+                        <span class="onboarding-tag">⏳ كبح الشراء الاندفاعي</span>
+                        <span class="onboarding-tag">💱 دعم العملات</span>
+                    </div>
+                    <p class="onboarding-slide-desc">
+                        خصّص حصالات لأحلامك المستقبلية بالعملات المختلفة (شيكل، دولار، دينار). وعند الرغبة في شراء كماليات باهظة، فعّل "فترة التهدئة 48 ساعة" لتفكر بهدوء قبل الإنفاق.
+                    </p>
+                </div>
+
+                <!-- Slide 4: بدون إنترنت -->
+                <div class="onboarding-slide" id="onboardingSlide4">
+                    <div class="onboarding-icon-wrap" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(52, 211, 153, 0.15)); border-color: rgba(16, 185, 129, 0.45);">
+                        <span>📶</span>
+                    </div>
+                    <h3 class="onboarding-slide-title">يعمل معك في أي مكان بدون إنترنت</h3>
+                    <div class="onboarding-tags-row">
+                        <span class="onboarding-tag">🚀 سرعة فائقة</span>
+                        <span class="onboarding-tag">🔒 خصوصية تامة</span>
+                        <span class="onboarding-tag">☁️ مزامنة سحابية</span>
+                    </div>
+                    <p class="onboarding-slide-desc">
+                        في السوبرماركت، أثناء السفر، أو في الأماكن ضعيفة التغطية، سجّل كل مصاريفك فورياً بدون أي تأخير. سيتولى النظام حفظها ومزامنتها تلقائياً عند عودة الاتصال.
+                    </p>
+                </div>
+            </div>
+
+            <div class="onboarding-footer">
+                <div class="onboarding-dots">
+                    <div class="onboarding-dot active" id="onboardingDot1" onclick="goToOnboardingSlide(1)"></div>
+                    <div class="onboarding-dot" id="onboardingDot2" onclick="goToOnboardingSlide(2)"></div>
+                    <div class="onboarding-dot" id="onboardingDot3" onclick="goToOnboardingSlide(3)"></div>
+                    <div class="onboarding-dot" id="onboardingDot4" onclick="goToOnboardingSlide(4)"></div>
+                </div>
+
+                <div class="onboarding-actions">
+                    <button type="button" class="btn-subtle" id="onboardingPrevBtn" onclick="prevOnboardingSlide()" style="visibility: hidden; font-size: 0.82rem; padding: 0.4rem 0.75rem;">
+                        <span>▶</span>
+                        <span>السابق</span>
+                    </button>
+                    <button type="button" class="btn-primary" id="onboardingNextBtn" onclick="nextOnboardingSlide()" style="font-size: 0.85rem; padding: 0.45rem 1.1rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <span>التالي</span>
+                        <span>◀</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 🛡️ Universal Custom Confirmation Modal (Modern Glassmorphism) -->
     <div class="modal-backdrop hidden" id="customConfirmModal" style="z-index: 99999;">
         <div class="modal-card modal-confirm-card">
@@ -1409,6 +1549,109 @@
         document.addEventListener('DOMContentLoaded', function() {
             window.initMasroofiDatepickers();
         });
+
+        // ==========================================
+        // 🚀 Native Splash Screen & Onboarding Tour Controller
+        // ==========================================
+        (function() {
+            const splash = document.getElementById('appSplashScreen');
+            const progressBar = document.getElementById('splashProgressBar');
+            const statusText = document.getElementById('splashStatusText');
+            if (!splash) return;
+
+            const isShownInSession = sessionStorage.getItem('masroofi_splash_done');
+            const duration = isShownInSession ? 350 : 1100;
+
+            if (progressBar) {
+                setTimeout(() => { progressBar.style.width = '65%'; }, 80);
+                setTimeout(() => { 
+                    progressBar.style.width = '100%';
+                    if (statusText) statusText.innerHTML = '<span class="splash-status-dot" style="background:#10b981;"></span><span>جاهز • مرحباً بك</span>';
+                }, Math.max(100, duration - 250));
+            }
+
+            setTimeout(() => {
+                splash.classList.add('splash-fade-out');
+                sessionStorage.setItem('masroofi_splash_done', 'true');
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    if (!localStorage.getItem('masroofi_onboarding_seen')) {
+                        openOnboardingModal();
+                    }
+                }, 400);
+            }, duration);
+        })();
+
+        // Onboarding Tour Controller
+        let currentOnboardingSlide = 1;
+        const totalOnboardingSlides = 4;
+
+        window.openOnboardingModal = function() {
+            currentOnboardingSlide = 1;
+            updateOnboardingView();
+            openModal('onboardingModal');
+        };
+
+        window.closeOnboardingModal = function() {
+            closeModal('onboardingModal');
+            localStorage.setItem('masroofi_onboarding_seen', 'true');
+        };
+
+        window.nextOnboardingSlide = function() {
+            if (currentOnboardingSlide < totalOnboardingSlides) {
+                currentOnboardingSlide++;
+                updateOnboardingView();
+            } else {
+                closeOnboardingModal();
+            }
+        };
+
+        window.prevOnboardingSlide = function() {
+            if (currentOnboardingSlide > 1) {
+                currentOnboardingSlide--;
+                updateOnboardingView();
+            }
+        };
+
+        window.goToOnboardingSlide = function(n) {
+            currentOnboardingSlide = n;
+            updateOnboardingView();
+        };
+
+        function updateOnboardingView() {
+            for (let i = 1; i <= totalOnboardingSlides; i++) {
+                const s = document.getElementById('onboardingSlide' + i);
+                const d = document.getElementById('onboardingDot' + i);
+                if (s) {
+                    if (i === currentOnboardingSlide) s.classList.add('active');
+                    else s.classList.remove('active');
+                }
+                if (d) {
+                    if (i === currentOnboardingSlide) d.classList.add('active');
+                    else d.classList.remove('active');
+                }
+            }
+
+            const stepEl = document.getElementById('onboardingStepIndicator');
+            if (stepEl) stepEl.textContent = `ميزة ${currentOnboardingSlide} من ${totalOnboardingSlides}`;
+
+            const nextBtn = document.getElementById('onboardingNextBtn');
+            const prevBtn = document.getElementById('onboardingPrevBtn');
+
+            if (prevBtn) {
+                prevBtn.style.visibility = (currentOnboardingSlide === 1) ? 'hidden' : 'visible';
+            }
+
+            if (nextBtn) {
+                if (currentOnboardingSlide === totalOnboardingSlides) {
+                    nextBtn.innerHTML = `<span>🚀 ابدأ استخدام مصروفي الآن</span>`;
+                    nextBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                } else {
+                    nextBtn.innerHTML = `<span>التالي</span> <span>◀</span>`;
+                    nextBtn.style.background = '';
+                }
+            }
+        }
     </script>
 
     @stack('scripts')
