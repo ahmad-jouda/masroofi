@@ -1,5 +1,5 @@
 // Service Worker for Masroofi Pro PWA (Background Sync & Offline Engine)
-const CACHE_NAME = 'masroofi-pwa-v3';
+const CACHE_NAME = 'masroofi-pwa-v4';
 const STATIC_ASSETS = [
   '/',
   '/css/style.css',

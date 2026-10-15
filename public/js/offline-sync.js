@@ -804,21 +804,42 @@ const MasroofiOffline = {
                 }).catch(() => {});
             }
 
-            // Sync immediately when app is brought to foreground or phone is unlocked (essential for mobile PWAs)
+            // Sync and refresh immediately when app is brought to foreground or phone is unlocked (essential for mobile PWAs)
+            let lastVisibleTime = Date.now();
+            let pageLoadedDate = new Date().toDateString();
+
+            const checkAndRefreshForeground = () => {
+                if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+
+                const now = Date.now();
+                const isNewDay = new Date().toDateString() !== pageLoadedDate;
+                const wasAwayLong = (now - lastVisibleTime) > (2 * 60 * 1000); // 2 minutes away
+                lastVisibleTime = now;
+
+                this.getAllPending().then(items => {
+                    if (items.length > 0) {
+                        this.syncTransactions(false);
+                    } else if (isNewDay || wasAwayLong) {
+                        // Check if user is actively interacting with an open modal or form input
+                        const hasOpenModal = document.querySelector('.modal-backdrop:not(.hidden)');
+                        const hasActiveInput = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+                        if (!hasOpenModal && !hasActiveInput) {
+                            window.location.reload();
+                        }
+                    }
+                });
+            };
+
             document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && navigator.onLine) {
-                    this.getAllPending().then(items => {
-                        if (items.length > 0) this.syncTransactions(false);
-                    });
+                if (document.visibilityState === 'visible') {
+                    checkAndRefreshForeground();
+                } else {
+                    lastVisibleTime = Date.now();
                 }
             });
 
             window.addEventListener('focus', () => {
-                if (navigator.onLine) {
-                    this.getAllPending().then(items => {
-                        if (items.length > 0) this.syncTransactions(false);
-                    });
-                }
+                checkAndRefreshForeground();
             });
 
             // Request Notification permission softly so system notification appears when synced in background
