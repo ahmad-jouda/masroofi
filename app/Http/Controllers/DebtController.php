@@ -223,4 +223,15 @@ class DebtController extends Controller
             'forecast' => $forecast,
         ]);
     }
+
+    public function resetHarvest(Debt $debt)
+    {
+        $debt->harvestLogs()->delete();
+        $debt->update([
+            'surplus_harvested' => 0.00,
+            'harvest_started_at' => now()->toDateString(),
+        ]);
+
+        return redirect()->route('dashboard', ['tab' => 'tab-debts'])->with('success', '🔄 تم تصفير حصالة الفائض وسجلاتها بنجاح! ستبدأ خطة الاقتطاع من فائض اليوم فصاعداً (بعد منتصف الليل).');
+    }
 }

@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/debts/{debt}/harvest/activate', [DebtController::class, 'activateHarvest'])->name('debts.harvest.activate');
     Route::post('/debts/{debt}/harvest/toggle', [DebtController::class, 'toggleHarvest'])->name('debts.harvest.toggle');
     Route::post('/debts/{debt}/harvest/repay', [DebtController::class, 'repayFromHarvest'])->name('debts.harvest.repay');
+    Route::post('/debts/{debt}/harvest/reset', [DebtController::class, 'resetHarvest'])->name('debts.harvest.reset');
     Route::get('/debts/{debt}/harvest/logs', [DebtController::class, 'getHarvestLogs'])->name('debts.harvest.logs');
     Route::delete('/debts/records/{record}', [DebtController::class, 'destroyRecord'])->name('debts.records.destroy');
 

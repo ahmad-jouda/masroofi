@@ -1311,8 +1311,15 @@
 
                                 <form action="{{ route('debts.harvest.toggle', $d) }}" method="POST" style="display: inline;">
                                     @csrf
-                                    <button type="submit" class="btn-subtle" style="padding: 0.35rem 0.6rem; font-size: 0.78rem;" title="إيقاف مؤقت للرصد اليومي">
-                                        ⏸️
+                                    <button type="submit" class="btn-subtle" style="padding: 0.35rem 0.6rem; font-size: 0.78rem;" title="{{ $d->is_harvest_active ? 'إيقاف مؤقت للرصد اليومي' : 'استئناف الرصد اليومي' }}">
+                                        {{ $d->is_harvest_active ? '⏸️' : '▶️' }}
+                                    </button>
+                                </form>
+
+                                <form action="{{ route('debts.harvest.reset', $d) }}" method="POST" style="display: inline;" onsubmit="return confirmActionForm(event, { title: 'تصفير الحصالة والبدء من اليوم', message: 'هل أنت متأكد من تصفير حصالة الفائض والبدء في رصد الفوائض اعتباراً من اليوم؟ (سيتم تصفير الرصيد ومسح الأيام السابقة للبدء من صفر)', confirmText: 'نعم، تصفير والبدء من اليوم', icon: '🔄', isDanger: true })">
+                                    @csrf
+                                    <button type="submit" class="btn-subtle" style="padding: 0.35rem 0.6rem; font-size: 0.78rem; color: #f87171;" title="تصفير الحصالة وسجلاتها والبدء من اليوم">
+                                        🔄
                                     </button>
                                 </form>
 

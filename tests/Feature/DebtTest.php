@@ -316,4 +316,38 @@ class DebtTest extends TestCase
         $this->assertDatabaseMissing('debt_records', ['id' => $rec->id]);
         $this->assertEquals(60.00, (float) $debt->fresh()->total_debt);
     }
+
+    public function test_can_reset_debt_harvest_pot_and_start_from_today(): void
+    {
+        $debt = Debt::create([
+            'name' => 'حنان',
+            'type' => 'person',
+            'total_debt' => 60.00,
+            'status' => 'active',
+            'is_harvest_active' => true,
+            'surplus_harvested' => 20.50,
+            'harvest_started_at' => now()->subDays(3)->toDateString(),
+        ]);
+
+        $debt->harvestLogs()->create([
+            'date' => now()->subDay()->toDateString(),
+            'day_allowance' => 50.00,
+            'day_spent' => 9.00,
+            'surplus_amount' => 41.00,
+            'harvested_amount' => 20.50,
+        ]);
+
+        $this->assertCount(1, $debt->harvestLogs);
+        $this->assertEquals(20.50, (float) $debt->surplus_harvested);
+
+        $response = $this->post("/debts/{$debt->id}/harvest/reset");
+
+        $response->assertRedirect(route('dashboard', ['tab' => 'tab-debts']));
+        $response->assertSessionHas('success');
+
+        $fresh = $debt->fresh();
+        $this->assertEquals(0.00, (float) $fresh->surplus_harvested);
+        $this->assertEquals(now()->toDateString(), $fresh->harvest_started_at->toDateString());
+        $this->assertCount(0, $fresh->harvestLogs);
+    }
 }
