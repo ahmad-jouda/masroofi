@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DebtHarvestLog;
 use App\Models\GoalHarvestLog;
 use App\Models\SavingGoal;
 use App\Models\Transaction;
@@ -55,11 +56,19 @@ class GoalSurplusHarvestService
             $dateString = $date->toDateString();
 
             // Check if already processed
-            $exists = GoalHarvestLog::where('goal_id', $goal->id)
+            $existingLog = GoalHarvestLog::where('goal_id', $goal->id)
                 ->whereDate('date', $dateString)
-                ->exists();
+                ->first();
 
-            if ($exists) {
+            if ($existingLog) {
+                // Self-healing check: if actual transactions on that day changed since harvest was logged, adjust!
+                $currentSpent = (float) Transaction::where('type', 'expense')
+                    ->whereDate('date', $dateString)
+                    ->sum('amount');
+                if (abs((float) $existingLog->day_spent - $currentSpent) > 0.001) {
+                    DailySurplusAdjustmentService::recalculateForDate($dateString);
+                }
+
                 continue;
             }
 
@@ -78,7 +87,7 @@ class GoalSurplusHarvestService
 
             if ($surplus > 0) {
                 // Safeguard against over-harvesting if debts already took a portion
-                $alreadyHarvestedForDebt = (float) \App\Models\DebtHarvestLog::whereDate('date', $dateString)->sum('harvested_amount');
+                $alreadyHarvestedForDebt = (float) DebtHarvestLog::whereDate('date', $dateString)->sum('harvested_amount');
                 $availableSurplusForGoal = max(0, $surplus - $alreadyHarvestedForDebt);
 
                 $harvestRatio = (float) ($goal->harvest_ratio ?: 0.50);
@@ -119,6 +128,7 @@ class GoalSurplusHarvestService
                     GoalHarvestLog::create([
                         'workspace_id' => $goal->workspace_id ?? 1,
                         'goal_id' => $goal->id,
+                        'transaction_id' => $tx->id,
                         'date' => $dateString,
                         'day_allowance' => $dayAllowance,
                         'day_spent' => $daySpent,

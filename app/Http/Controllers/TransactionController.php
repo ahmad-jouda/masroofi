@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\DebtRecord;
 use App\Models\SavingGoal;
 use App\Models\Transaction;
+use App\Services\DailySurplusAdjustmentService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -38,11 +40,28 @@ class TransactionController extends Controller
             }
         }
 
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'transaction' => $tx]);
+        $adjustmentMessage = null;
+        if ($tx->type === 'expense' && Carbon::parse($tx->date)->lt(Carbon::today())) {
+            $adjustment = DailySurplusAdjustmentService::recalculateForDate($tx->date);
+            if ($adjustment) {
+                $adjustmentMessage = DailySurplusAdjustmentService::formatAdjustmentSummary($adjustment);
+            }
         }
 
-        return redirect()->route('dashboard')->with('success', 'تم تسجيل المعاملة بنجاح ✅');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'transaction' => $tx,
+                'adjustment_message' => $adjustmentMessage,
+            ]);
+        }
+
+        $msg = 'تم تسجيل المعاملة بنجاح ✅';
+        if ($adjustmentMessage) {
+            $msg .= ' '.$adjustmentMessage;
+        }
+
+        return redirect()->route('dashboard')->with('success', $msg);
     }
 
     public function update(Request $request, Transaction $transaction)
@@ -63,6 +82,9 @@ class TransactionController extends Controller
         if ($validated['type'] === 'income') {
             $validated['envelope_id'] = null;
         }
+
+        $oldDate = Carbon::parse($transaction->date)->toDateString();
+        $oldType = $transaction->type;
 
         DB::transaction(function () use ($validated, $transaction) {
             // Revert old saving goal if was savings
@@ -85,11 +107,35 @@ class TransactionController extends Controller
             }
         });
 
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'transaction' => $transaction->fresh()]);
+        $fresh = $transaction->fresh();
+        $newDate = Carbon::parse($fresh->date)->toDateString();
+        $newType = $fresh->type;
+
+        $adjMessages = [];
+        if ($oldType === 'expense' && Carbon::parse($oldDate)->lt(Carbon::today())) {
+            $adj1 = DailySurplusAdjustmentService::recalculateForDate($oldDate);
+            if ($adj1) {
+                $adjMessages[] = DailySurplusAdjustmentService::formatAdjustmentSummary($adj1);
+            }
+        }
+        if ($newDate !== $oldDate && $newType === 'expense' && Carbon::parse($newDate)->lt(Carbon::today())) {
+            $adj2 = DailySurplusAdjustmentService::recalculateForDate($newDate);
+            if ($adj2) {
+                $adjMessages[] = DailySurplusAdjustmentService::formatAdjustmentSummary($adj2);
+            }
         }
 
-        return redirect()->route('dashboard')->with('success', 'تم تعديل المعاملة وتحديث الرصيد بنجاح ✏️');
+        $adjText = ! empty($adjMessages) ? ' '.implode(' ', array_filter($adjMessages)) : '';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'transaction' => $fresh,
+                'adjustment_message' => trim($adjText) ?: null,
+            ]);
+        }
+
+        return redirect()->route('dashboard')->with('success', 'تم تعديل المعاملة وتحديث الرصيد بنجاح ✏️'.$adjText);
     }
 
     public function syncOffline(Request $request)
@@ -132,6 +178,17 @@ class TransactionController extends Controller
             }
         });
 
+        $expenseDates = collect($validated['transactions'])
+            ->where('type', 'expense')
+            ->pluck('date')
+            ->map(fn ($d) => Carbon::parse($d)->toDateString())
+            ->filter(fn ($d) => Carbon::parse($d)->lt(Carbon::today()))
+            ->unique();
+
+        foreach ($expenseDates as $expDate) {
+            DailySurplusAdjustmentService::recalculateForDate($expDate);
+        }
+
         return response()->json([
             'success' => true,
             'synced_count' => count($created),
@@ -142,6 +199,9 @@ class TransactionController extends Controller
 
     public function destroy(Request $request, Transaction $transaction)
     {
+        $date = Carbon::parse($transaction->date)->toDateString();
+        $type = $transaction->type;
+
         if ($transaction->type === 'savings' && $transaction->goal_id) {
             $goal = SavingGoal::find($transaction->goal_id);
             if ($goal) {
@@ -159,10 +219,18 @@ class TransactionController extends Controller
 
         $transaction->delete();
 
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true]);
+        $adjText = '';
+        if ($type === 'expense' && Carbon::parse($date)->lt(Carbon::today())) {
+            $adj = DailySurplusAdjustmentService::recalculateForDate($date);
+            if ($adj) {
+                $adjText = ' '.DailySurplusAdjustmentService::formatAdjustmentSummary($adj);
+            }
         }
 
-        return redirect()->route('dashboard')->with('success', 'تم حذف المعاملة وتحديث الرصيد');
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'adjustment_message' => trim($adjText) ?: null]);
+        }
+
+        return redirect()->route('dashboard')->with('success', 'تم حذف المعاملة وتحديث الرصيد'.$adjText);
     }
 }

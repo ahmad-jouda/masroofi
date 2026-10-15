@@ -14,4 +14,3 @@ Schedule::command('currency:update-rates')->hourly();
 
 // رصد واستقطاع فوائض اليوميات تلقائياً وتوزيع النسب بين الديون وصناديق التحويش عند منتصف الليل (00:01) في بداية كل يوم جديد
 Schedule::command('surplus:harvest-daily')->dailyAt('00:01');
-

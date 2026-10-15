@@ -51,11 +51,19 @@ class DebtSurplusHarvestService
             $dateString = $date->toDateString();
 
             // Check if already processed
-            $exists = DebtHarvestLog::where('debt_id', $debt->id)
+            $existingLog = DebtHarvestLog::where('debt_id', $debt->id)
                 ->whereDate('date', $dateString)
-                ->exists();
+                ->first();
 
-            if ($exists) {
+            if ($existingLog) {
+                // Self-healing check: if actual transactions on that day changed since harvest was logged, adjust!
+                $currentSpent = (float) Transaction::where('type', 'expense')
+                    ->whereDate('date', $dateString)
+                    ->sum('amount');
+                if (abs((float) $existingLog->day_spent - $currentSpent) > 0.001) {
+                    DailySurplusAdjustmentService::recalculateForDate($dateString);
+                }
+
                 continue;
             }
 

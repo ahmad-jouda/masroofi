@@ -14,6 +14,7 @@ class GoalHarvestLog extends Model
     protected $fillable = [
         'workspace_id',
         'goal_id',
+        'transaction_id',
         'date',
         'day_allowance',
         'day_spent',
@@ -38,5 +39,10 @@ class GoalHarvestLog extends Model
     public function goal(): BelongsTo
     {
         return $this->belongsTo(SavingGoal::class, 'goal_id');
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class, 'transaction_id');
     }
 }
