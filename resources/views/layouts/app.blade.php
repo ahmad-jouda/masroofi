@@ -1489,6 +1489,35 @@
                 isDanger: true
             });
             if (confirmed && form) {
+                // If it's a transaction delete form, delete via fast AJAX without full page reload
+                if (form.action && form.action.includes('/transactions/')) {
+                    const row = form.closest('.tx-item') || form.closest('tr');
+                    if (row) {
+                        row.style.transition = 'all 0.3s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(-20px)';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                    try {
+                        const csrfToken = form.querySelector('input[name="_token"]')?.value || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        const resp = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: new FormData(form)
+                        });
+                        if (resp.ok) {
+                            if (window.MasroofiOffline && typeof window.MasroofiOffline.showToast === 'function') {
+                                window.MasroofiOffline.showToast('🗑️ تم حذف المعاملة وتحديث الرصيد فوراً', 'success');
+                            }
+                            return false;
+                        }
+                    } catch (err) {
+                        console.warn('AJAX delete failed, submitting normally:', err);
+                    }
+                }
                 form.submit();
             }
             return false;

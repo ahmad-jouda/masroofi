@@ -51,7 +51,7 @@ class TransactionController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'transaction' => $tx,
+                'transaction' => $tx->load(['envelope', 'goal', 'user']),
                 'adjustment_message' => $adjustmentMessage,
             ]);
         }

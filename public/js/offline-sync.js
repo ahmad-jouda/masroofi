@@ -680,84 +680,134 @@ const MasroofiOffline = {
         }
     },
 
-    // Hook Form Submit
+    // Hook Form Submit for Instant Optimistic UI (Zero Lag even on slow networks)
     setupFormInterceptor() {
         const txForm = document.getElementById('txForm');
         if (!txForm) return;
 
         txForm.addEventListener('submit', async (e) => {
-            // Check if user is offline
-            if (!navigator.onLine) {
-                e.preventDefault();
+            e.preventDefault();
 
-                const amountInput = txForm.querySelector('input[name="amount"]');
-                const amount = parseFloat(amountInput ? amountInput.value : 0);
-                if (!amount || amount <= 0) {
-                    alert('يرجى إدخال مبلغ صحيح.');
-                    return;
+            const amountInput = txForm.querySelector('input[name="amount"]');
+            const amount = parseFloat(amountInput ? amountInput.value : 0);
+            if (!amount || amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح.');
+                return;
+            }
+
+            const type = (txForm.querySelector('input[name="type"]:checked')?.value) || 'expense';
+            const date = (txForm.querySelector('input[name="date"]')?.value) || new Date().toISOString().split('T')[0];
+            const payment_method = (txForm.querySelector('input[name="payment_method"]')?.value) || 'transfer';
+            const note = (txForm.querySelector('input[name="note"]')?.value) || '';
+
+            let envelope_id = null;
+            let envelope_name = null;
+            if (type === 'expense') {
+                const envSelect = document.getElementById('txEnvelopeSelect');
+                if (envSelect && envSelect.value) {
+                    envelope_id = envSelect.value;
+                    envelope_name = envSelect.options[envSelect.selectedIndex]?.text?.trim() || null;
                 }
+            }
 
-                const type = (txForm.querySelector('input[name="type"]:checked')?.value) || 'expense';
-                const date = (txForm.querySelector('input[name="date"]')?.value) || new Date().toISOString().split('T')[0];
-                const payment_method = (txForm.querySelector('input[name="payment_method"]')?.value) || 'transfer';
-                const note = (txForm.querySelector('input[name="note"]')?.value) || '';
-
-                let envelope_id = null;
-                let envelope_name = null;
-                if (type === 'expense') {
-                    const envSelect = document.getElementById('txEnvelopeSelect');
-                    if (envSelect && envSelect.value) {
-                        envelope_id = envSelect.value;
-                        envelope_name = envSelect.options[envSelect.selectedIndex]?.text?.trim() || null;
-                    }
+            let goal_id = null;
+            let goal_name = null;
+            if (type === 'savings') {
+                const goalSelect = txForm.querySelector('select[name="goal_id"]');
+                if (goalSelect && goalSelect.value) {
+                    goal_id = goalSelect.value;
+                    goal_name = goalSelect.options[goalSelect.selectedIndex]?.text?.trim() || null;
                 }
+            }
 
-                let goal_id = null;
-                let goal_name = null;
-                if (type === 'savings') {
-                    const goalSelect = txForm.querySelector('select[name="goal_id"]');
-                    if (goalSelect && goalSelect.value) {
-                        goal_id = goalSelect.value;
-                        goal_name = goalSelect.options[goalSelect.selectedIndex]?.text?.trim() || null;
-                    }
-                }
+            const record = {
+                type,
+                amount,
+                envelope_id,
+                envelope_name,
+                goal_id,
+                goal_name,
+                date,
+                payment_method,
+                note
+            };
 
+            // 1. Instant close and UI feedback (0ms perceived latency!)
+            if (typeof closeModal === 'function') {
+                closeModal('transactionModal');
+            }
+            txForm.reset();
+
+            const tempId = 'temp_' + Date.now();
+            record.id = tempId;
+
+            // Immediately apply optimistic numbers & cards to UI
+            this.applyTransactionToUI(record, true);
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 } });
+            }
+
+            // 2. Perform background save
+            if (navigator.onLine) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                 try {
-                    const record = {
-                        type,
-                        amount,
-                        envelope_id,
-                        envelope_name,
-                        goal_id,
-                        goal_name,
-                        date,
-                        payment_method,
-                        note
-                    };
+                    const response = await fetch('/transactions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            type: record.type,
+                            amount: record.amount,
+                            envelope_id: record.envelope_id || null,
+                            goal_id: record.goal_id || null,
+                            date: record.date,
+                            payment_method: record.payment_method,
+                            note: record.note || null
+                        })
+                    });
 
-                    const txId = await this.addTransaction(record);
-                    record.id = txId;
-
-                    // Immediately execute optimistic update to UI!
-                    this.applyTransactionToUI(record, true);
-
-                    // Close modal & reset form
-                    if (typeof closeModal === 'function') {
-                        closeModal('transactionModal');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.transaction) {
+                            // Update temporary element IDs & remove pending tags
+                            const realId = data.transaction.id;
+                            const optimisticCard = document.getElementById(`optimistic-tx-card-${tempId}`);
+                            if (optimisticCard) {
+                                optimisticCard.id = `optimistic-tx-card-${realId}`;
+                                const pending = optimisticCard.querySelector('.badge-offline-pending');
+                                if (pending) pending.remove();
+                                const meta = optimisticCard.querySelector('.tx-meta');
+                                if (meta) meta.textContent = meta.textContent.replace('• ⚡ مسجل أوفلاين', '');
+                            }
+                            const optimisticRow = document.getElementById(`optimistic-tx-row-${tempId}`);
+                            if (optimisticRow) {
+                                optimisticRow.id = `optimistic-tx-row-${realId}`;
+                                const pending = optimisticRow.querySelector('.badge-offline-pending');
+                                if (pending) pending.remove();
+                                const small = optimisticRow.querySelector('small');
+                                if (small && small.textContent.includes('مسجل أوفلاين')) small.remove();
+                            }
+                            const msg = data.adjustment_message ? `⚡ تم حفظ المعاملة بنجاح! (${data.adjustment_message})` : '⚡ تم حفظ المعاملة وخصمها فورياً! ✅';
+                            this.showToast(msg, 'success');
+                            return;
+                        }
                     }
-                    txForm.reset();
-
-                    // Sound / Confetti
-                    if (typeof confetti === 'function') {
-                        confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 } });
-                    }
-
-                    this.showToast('⚡ تم تسجيل المعاملة وخصمها من اليومية وسجل الحركات فوراً! ستتم المزامنة تلقائياً مع السيرفر فور عودة الاتصال.', 'success');
-                    await this.updateUI();
+                    throw new Error('Server non-OK status');
                 } catch (err) {
-                    console.error('Failed to save transaction offline:', err);
-                    alert('تعذر حفظ المعاملة محلياً: ' + err.message);
+                    console.warn('Online sync failed, saving offline:', err);
+                    const idbId = await this.addTransaction(record);
+                    this.showToast('📡 ضعف في الاتصال: تم حفظ المعاملة في جهازك وسيتم مزامنتها مع السيرفر تلقائياً.', 'warning');
+                    await this.updateUI();
                 }
+            } else {
+                // Completely offline
+                const idbId = await this.addTransaction(record);
+                this.showToast('⚡ تم تسجيل المعاملة محلياً وخصمها من اليومية فوراً! ستتم المزامنة تلقائياً عند عودة الاتصال.', 'success');
+                await this.updateUI();
             }
         });
     },
