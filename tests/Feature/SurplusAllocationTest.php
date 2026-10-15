@@ -191,4 +191,51 @@ class SurplusAllocationTest extends TestCase
         $this->assertTrue($goal->is_harvest_active);
         $this->assertEquals(0.50, (float) $goal->harvest_ratio);
     }
+
+    public function test_scheduled_execution_mode_only_saves_policy_without_creating_immediate_transactions(): void
+    {
+        $debt = Debt::create([
+            'name' => 'حنان',
+            'type' => 'person',
+            'total_debt' => 60.00,
+            'status' => 'active',
+        ]);
+
+        $goal = SavingGoal::create([
+            'name' => 'محمود',
+            'target_amount' => 500.00,
+            'current_amount' => 50.00,
+            'currency' => 'ILS',
+        ]);
+
+        $initialTxCount = Transaction::count();
+
+        // User specifies 40% debt, 40% goal in scheduled mode (midnight)
+        $response = $this->post('/surplus/allocate', [
+            'execution_mode' => 'scheduled',
+            'surplus_amount' => 55.00,
+            'debt_id' => $debt->id,
+            'debt_percentage' => 40,
+            'goal_id' => $goal->id,
+            'goal_percentage' => 40,
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('success');
+
+        // Debt and goal have active harvest and ratios set
+        $debt->refresh();
+        $this->assertTrue($debt->is_harvest_active);
+        $this->assertEquals(0.40, (float) $debt->harvest_ratio);
+        $this->assertEquals(now()->toDateString(), $debt->harvest_started_at->toDateString());
+        $this->assertEquals(60.00, (float) $debt->total_debt); // Not deducted now!
+
+        $goal->refresh();
+        $this->assertTrue($goal->is_harvest_active);
+        $this->assertEquals(0.40, (float) $goal->harvest_ratio);
+        $this->assertEquals(50.00, (float) $goal->current_amount); // Not deposited now!
+
+        // Zero immediate transactions created!
+        $this->assertEquals($initialTxCount, Transaction::count());
+    }
 }

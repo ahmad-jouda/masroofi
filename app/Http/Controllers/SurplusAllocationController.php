@@ -21,11 +21,13 @@ class SurplusAllocationController extends Controller
             'goal_id' => 'nullable|exists:saving_goals,id',
             'goal_percentage' => 'nullable|numeric|min:0|max:100',
             'save_goal_auto_harvest' => 'nullable|boolean',
+            'execution_mode' => 'nullable|in:scheduled,instant',
         ]);
 
         $surplus = (float) $validated['surplus_amount'];
         $debtPct = isset($validated['debt_percentage']) ? (float) $validated['debt_percentage'] : 0;
         $goalPct = isset($validated['goal_percentage']) ? (float) $validated['goal_percentage'] : 0;
+        $executionMode = $request->input('execution_mode', 'instant');
 
         if (($debtPct + $goalPct) > 100) {
             return back()->with('error', 'مجموع النسب المقتطعة لا يمكن أن يتجاوز 100% من الفائض اليومي.');
@@ -41,6 +43,39 @@ class SurplusAllocationController extends Controller
 
         if ($goalPct > 0 && empty($validated['goal_id'])) {
             return back()->with('error', 'يرجى اختيار حصالة التحويش المراد توجيه المبلغ إليها.');
+        }
+
+        // 🌙 Scheduled Mode: Just save the distribution policy for midnight without touching live liquidity now!
+        if ($executionMode === 'scheduled') {
+            $messages = [];
+            if ($debtPct > 0 && ! empty($validated['debt_id'])) {
+                $debt = Debt::findOrFail($validated['debt_id']);
+                $debt->update([
+                    'is_harvest_active' => true,
+                    'harvest_ratio' => $debtPct / 100,
+                    'harvest_started_at' => now()->toDateString(),
+                ]);
+                $messages[] = "تخصيص {$debtPct}% لدين [{$debt->name}]";
+            }
+
+            if ($goalPct > 0 && ! empty($validated['goal_id'])) {
+                $goal = SavingGoal::findOrFail($validated['goal_id']);
+                $goal->update([
+                    'is_harvest_active' => true,
+                    'harvest_ratio' => $goalPct / 100,
+                    'harvest_started_at' => now()->toDateString(),
+                ]);
+                $messages[] = "تخصيص {$goalPct}% لحصالة [{$goal->name}]";
+            }
+
+            $bufferPct = max(0, 100 - ($debtPct + $goalPct));
+            if ($bufferPct > 0) {
+                $messages[] = "إبقاء {$bufferPct}% لرفع يوميات باقي الشهر";
+            }
+
+            $summary = implode(' و ', $messages);
+
+            return redirect()->route('dashboard')->with('success', "🌙 تم تثبيت خطة التوزيع بنجاح ({$summary})! سيتم اقتطاع الفائض الفعلي المتبقي في وقته المحدد (عند منتصف الليل)، دون المساس برصيد يوميتك الحالية الآن.");
         }
 
         $debtILS = 0;

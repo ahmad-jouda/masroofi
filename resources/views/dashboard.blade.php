@@ -2301,6 +2301,36 @@
                 </div>
             </div>
 
+            <!-- Execution Mode Toggle (Scheduled vs Instant) -->
+            <div style="margin-bottom: 0.85rem; padding: 0.65rem 0.75rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="font-size: 0.78rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.45rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span>⏰ متى تريد تنفيذ هذا التوزيع؟</span>
+                    <span id="modeStatusBadge" style="font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 20px; background: rgba(52, 211, 153, 0.15); color: #34d399; font-weight: 700;">
+                        🌙 في وقته المحدد (منتصف الليل)
+                    </span>
+                </div>
+                <input type="hidden" name="execution_mode" id="harvestExecutionModeInput" value="scheduled">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <button type="button" class="btn-mode-toggle" id="btnModeScheduled" onclick="setHarvestExecutionMode('scheduled')" style="padding: 0.55rem; border-radius: 9px; border: 1px solid #10b981; background: rgba(16,185,129,0.18); color: #fff; text-align: right; cursor: pointer; transition: all 0.2s;">
+                        <div class="mode-title" style="font-size: 0.82rem; font-weight: 800; color: #34d399; margin-bottom: 0.2rem;">
+                            🌙 في وقته المحدد (منتصف الليل)
+                        </div>
+                        <div style="font-size: 0.68rem; color: #9ca3af; line-height: 1.35;">
+                            تثبيت النسب واقتطاع الفائض الفعلي المتبقي بنهاية اليوم (يوميتك الحالية تبقى كاملة دون خصم الآن)
+                        </div>
+                    </button>
+
+                    <button type="button" class="btn-mode-toggle" id="btnModeInstant" onclick="setHarvestExecutionMode('instant')" style="padding: 0.55rem; border-radius: 9px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #9ca3af; text-align: right; cursor: pointer; transition: all 0.2s;">
+                        <div class="mode-title" style="font-size: 0.82rem; font-weight: 800; color: #9ca3af; margin-bottom: 0.2rem;">
+                            ⚡ سداد وخصم فوري الآن
+                        </div>
+                        <div style="font-size: 0.68rem; color: #9ca3af; line-height: 1.35;">
+                            خصم المبالغ فوراً في هذه اللحظة من رصيد يومية اليوم (سداد فوري مباشر)
+                        </div>
+                    </button>
+                </div>
+            </div>
+
             @if($hasUnpaidDebts && $hasIncompleteGoals)
                 <!-- Quick Preset Strategies (When both exist) -->
                 <div style="margin-bottom: 0.65rem;">
@@ -4039,8 +4069,64 @@
             applySplitStrategy(0, 0);
         }
 
+        if (typeof window.setHarvestExecutionMode === 'function') {
+            window.setHarvestExecutionMode('scheduled');
+        }
+
         updateUnifiedCalculations();
         openModal('harvestDailySurplusModal');
+    };
+
+    window.currentHarvestExecutionMode = 'scheduled';
+
+    window.setHarvestExecutionMode = function(mode) {
+        window.currentHarvestExecutionMode = mode;
+        const input = document.getElementById('harvestExecutionModeInput');
+        if (input) input.value = mode;
+
+        const btnSched = document.getElementById('btnModeScheduled');
+        const btnInst = document.getElementById('btnModeInstant');
+        const badge = document.getElementById('modeStatusBadge');
+
+        if (mode === 'scheduled') {
+            if (btnSched) {
+                btnSched.style.borderColor = '#10b981';
+                btnSched.style.background = 'rgba(16,185,129,0.18)';
+                const t = btnSched.querySelector('.mode-title');
+                if (t) t.style.color = '#34d399';
+            }
+            if (btnInst) {
+                btnInst.style.borderColor = 'rgba(255,255,255,0.1)';
+                btnInst.style.background = 'rgba(255,255,255,0.02)';
+                const t = btnInst.querySelector('.mode-title');
+                if (t) t.style.color = '#9ca3af';
+            }
+            if (badge) {
+                badge.textContent = '🌙 في وقته المحدد (منتصف الليل)';
+                badge.style.background = 'rgba(52, 211, 153, 0.15)';
+                badge.style.color = '#34d399';
+            }
+        } else {
+            if (btnSched) {
+                btnSched.style.borderColor = 'rgba(255,255,255,0.1)';
+                btnSched.style.background = 'rgba(255,255,255,0.02)';
+                const t = btnSched.querySelector('.mode-title');
+                if (t) t.style.color = '#9ca3af';
+            }
+            if (btnInst) {
+                btnInst.style.borderColor = '#f59e0b';
+                btnInst.style.background = 'rgba(245,158,11,0.18)';
+                const t = btnInst.querySelector('.mode-title');
+                if (t) t.style.color = '#fbbf24';
+            }
+            if (badge) {
+                badge.textContent = '⚡ سداد وخصم فوري الآن';
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.color = '#fbbf24';
+            }
+        }
+
+        updateUnifiedCalculations();
     };
 
     window.applySplitStrategy = function(debtPct, goalPct) {
@@ -4208,22 +4294,24 @@
         if (simBuffer) simBuffer.textContent = `${bufferILS.toFixed(2)} ₪`;
 
         if (btnSubmit) {
-            if (!hasUnpaidDebts && hasIncompleteGoals) {
-                const label = goalILS > 0
-                    ? `تأكيد تحويش (+${goalConverted.toFixed(goalCurrency === 'USD' ? 2 : 0)} ${goalSymbol}) والباقي (${bufferILS.toFixed(0)} ₪) لليوميات`
-                    : `ترحيل كامل الفائض (${bufferILS.toFixed(0)} ₪) لليوميات`;
-                btnSubmit.innerHTML = `<span>🎉 ${label}</span>`;
-            } else if (hasUnpaidDebts && !hasIncompleteGoals) {
-                const label = debtILS > 0
-                    ? `تأكيد سداد الدين (-${debtILS.toFixed(0)} ₪) والباقي (${bufferILS.toFixed(0)} ₪) لليوميات`
-                    : `ترحيل كامل الفائض (${bufferILS.toFixed(0)} ₪) لليوميات`;
-                btnSubmit.innerHTML = `<span>🎉 ${label}</span>`;
+            const isScheduled = (window.currentHarvestExecutionMode === 'scheduled');
+
+            if (isScheduled) {
+                btnSubmit.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                btnSubmit.style.borderColor = 'rgba(16,185,129,0.4)';
+                let parts = [];
+                if (debtPct > 0) parts.push(`${debtPct}% للدين`);
+                if (goalPct > 0) parts.push(`${goalPct}% للتحويش`);
+                const desc = parts.length > 0 ? ` (${parts.join(' + ')})` : '';
+                btnSubmit.innerHTML = `<span>🌙 حفظ وتثبيت التوزيع عند منتصف الليل${desc}</span>`;
             } else {
+                btnSubmit.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                btnSubmit.style.borderColor = 'rgba(245,158,11,0.4)';
                 let actionDesc = [];
                 if (debtILS > 0) actionDesc.push(`${debtILS.toFixed(0)} ₪ دين`);
                 if (goalILS > 0) actionDesc.push(`${goalConverted.toFixed(goalCurrency === 'USD' ? 2 : 0)} ${goalSymbol} تحويش`);
-                const label = actionDesc.length > 0 ? `تأكيد توزيع (${actionDesc.join(' + ')})` : `ترحيل كامل الفائض (${bufferILS.toFixed(0)} ₪) لليوميات`;
-                btnSubmit.innerHTML = `<span>🎉 ${label}</span>`;
+                const label = actionDesc.length > 0 ? `خصم فوري الآن (${actionDesc.join(' + ')})` : `ترحيل كامل الفائض (${bufferILS.toFixed(0)} ₪) لليوميات`;
+                btnSubmit.innerHTML = `<span>⚡ تأكيد ال${label}</span>`;
             }
         }
     };
