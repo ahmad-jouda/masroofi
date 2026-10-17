@@ -16,7 +16,7 @@ class UserSettingController extends Controller
 {
     public function update(Request $request)
     {
-        $workspaceId = auth()->user()?->workspace_id ?? 1;
+        $workspaceId = $request->user()?->workspace_id ?? 1;
         $settings = UserSetting::firstOrCreate(['workspace_id' => $workspaceId]);
         $oldCurrency = $settings->currency ?? 'SAR';
         $oldSalary = (float) $settings->salary;
@@ -26,7 +26,7 @@ class UserSettingController extends Controller
             'salary_day' => 'nullable|integer|between:1,31',
             'cycle_mode' => 'nullable|in:first_salary,custom_day',
             'work_hours_per_week' => 'nullable|integer|between:1,100',
-            'savings_target_percent' => 'nullable|integer|between:1,90',
+            'savings_target_percent' => 'nullable|integer|between:0,90',
             'currency' => 'nullable|string|max:10',
             'theme' => 'nullable|in:dark,light',
             'sound_enabled' => 'nullable|boolean',
@@ -104,7 +104,7 @@ class UserSettingController extends Controller
         Subscription::query()->delete();
         Envelope::query()->update(['budget' => 0.00]);
 
-        $workspaceId = auth()->user()?->workspace_id ?? 1;
+        $workspaceId = $request->user()?->workspace_id ?? 1;
         $setting = UserSetting::firstOrCreate(['workspace_id' => $workspaceId]);
         $setting->update([
             'salary' => 0.00,
@@ -120,7 +120,7 @@ class UserSettingController extends Controller
      */
     public function startNewCycleNow(Request $request)
     {
-        $workspaceId = auth()->user()?->workspace_id ?? 1;
+        $workspaceId = $request->user()?->workspace_id ?? 1;
         $setting = UserSetting::firstOrCreate(['workspace_id' => $workspaceId]);
         $today = now();
         $setting->update([

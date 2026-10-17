@@ -287,15 +287,18 @@
             </div>
         </div>
 
-        <div class="stat-card stat-savings">
+        <div class="stat-card stat-savings" onclick="openModal('salarySettingsModal'); switchSalarySubTab('cycle');" style="cursor: pointer;" title="اضغط هنا لتعديل أو تقليل نسبة محجوز الادخار">
             <div class="stat-icon-badge">🎯</div>
             <div class="stat-details">
-                <span class="stat-title">محجوز للتحويش والادخار</span>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span class="stat-title">محجوز للتحويش والادخار</span>
+                    <span style="font-size: 0.72rem; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 1px 6px; border-radius: 4px; font-weight: 700;">⚙️ تعديل</span>
+                </div>
                 <div class="stat-number-wrap">
                     <span class="stat-number" id="statTotalSavings" data-base-val="{{ (float)$actualSavedOrReserved }}">{{ number_format($actualSavedOrReserved, 0) }}</span>
                     <span class="curr-tag">{{ $settings->currency ?? 'SAR' }}</span>
                 </div>
-                <span class="stat-subtext">معدل التحويش: {{ $settings->savings_target_percent }}%</span>
+                <span class="stat-subtext">معدل التحويش: {{ $settings->savings_target_percent }}% (اضغط لتغيير النسبة)</span>
             </div>
         </div>
     </div>
@@ -1906,7 +1909,8 @@
 
                         <div class="form-group">
                             <label>نسبة الادخار والتحويش (%):</label>
-                            <input type="number" name="savings_target_percent" class="styled-input" value="{{ $settings->savings_target_percent ?? 20 }}" min="1" max="90">
+                            <input type="number" name="savings_target_percent" class="styled-input" value="{{ $settings->savings_target_percent ?? 20 }}" min="0" max="90" placeholder="مثال: 10 أو 0">
+                            <small style="font-size: 0.73rem; color: #94a3b8; display: block; margin-top: 4px;">يمكنك وضع 0% إذا لم ترغب بحجز أي مبلغ مسبقاً للتحويش.</small>
                         </div>
                     </div>
 
