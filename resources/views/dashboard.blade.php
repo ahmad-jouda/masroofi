@@ -466,8 +466,8 @@
                 <span>✔️ تم شطب:</span>
                 <strong id="groceryStatBought">{{ $boughtGroceryCount ?? 0 }}</strong>
             </div>
-            <div class="grocery-stat-pill stat-total" title="إجمالي التكلفة التقديرية للأصناف المطلوبة">
-                <span>💰 تقديري:</span>
+            <div class="grocery-stat-pill stat-total" title="إجمالي مصروف الأغراض المشتراة">
+                <span>💰 مصروف:</span>
                 <strong id="groceryStatEstimated">{{ number_format($estimatedGroceryTotal ?? 0, 1) }}</strong>
                 <span>{{ $settings->currency ?? 'ILS' }}</span>
             </div>
@@ -506,8 +506,6 @@
                     @endforeach
                 </select>
 
-                <input type="number" step="0.5" name="estimated_price" id="groceryInputPrice" class="styled-input grocery-input-price" placeholder="سعر تقريبي (اختياري)">
-
                 <button type="submit" class="grocery-add-btn" id="grocerySubmitBtn">
                     <span>➕</span>
                     <span>إضافة للقائمة</span>
@@ -517,16 +515,16 @@
             <!-- Fast Suggestion Chips -->
             <div class="grocery-suggestions-wrap">
                 <span class="grocery-suggestions-label">أغراض شائعة سريعة:</span>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('حليب طازج 🥛', 'dairy', 7)"><span>🥛</span> <span>حليب</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خبز طازج 🥖', 'groceries', 4)"><span>🥖</span> <span>خبز</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('كرتونة بيض 🥚', 'dairy', 18)"><span>🥚</span> <span>بيض</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('جبنة بيضاء 🧀', 'dairy', 12)"><span>🧀</span> <span>جبنة</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خضار مشكلة 🥗', 'produce', 10)"><span>🥗</span> <span>خضار</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('منظفات ومحارم 🧼', 'cleaning', 25)"><span>🧼</span> <span>منظفات</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('دجاج طازج 🍗', 'meat', 35)"><span>🍗</span> <span>دجاج</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('زيت طعام / زيتون 🫒', 'groceries', 30)"><span>🫒</span> <span>زيت</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('شاي وسكر ☕', 'groceries', 15)"><span>☕</span> <span>شاي وسكر</span></button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('أدوية وعناية 💊', 'pharmacy', 20)"><span>💊</span> <span>صيدلية</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('حليب طازج 🥛', 'dairy')"><span>🥛</span> <span>حليب</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خبز طازج 🥖', 'groceries')"><span>🥖</span> <span>خبز</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('كرتونة بيض 🥚', 'dairy')"><span>🥚</span> <span>بيض</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('جبنة بيضاء 🧀', 'dairy')"><span>🧀</span> <span>جبنة</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خضار مشكلة 🥗', 'produce')"><span>🥗</span> <span>خضار</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('منظفات ومحارم 🧼', 'cleaning')"><span>🧼</span> <span>منظفات</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('دجاج طازج 🍗', 'meat')"><span>🍗</span> <span>دجاج</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('زيت طعام / زيتون 🫒', 'groceries')"><span>🫒</span> <span>زيت</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('شاي وسكر ☕', 'groceries')"><span>☕</span> <span>شاي وسكر</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('أدوية وعناية 💊', 'pharmacy')"><span>💊</span> <span>صيدلية</span></button>
             </div>
         </form>
     </div>
@@ -571,9 +569,9 @@
                 </div>
 
                 <div class="grocery-item-end">
-                    @if($item->estimated_price && $item->estimated_price > 0)
-                        <span class="grocery-item-price">~{{ number_format($item->estimated_price, 1) }} ₪</span>
-                    @endif
+                    <span class="grocery-item-price" id="groceryItemPrice_{{ $item->id }}" style="{{ ($item->estimated_price && $item->estimated_price > 0) ? '' : 'display: none;' }}">
+                        {{ ($item->estimated_price && $item->estimated_price > 0) ? ('~' . number_format($item->estimated_price, 1) . ' ₪') : '' }}
+                    </span>
                     <button type="button" class="grocery-del-btn" title="حذف الغرض" onclick="deleteGroceryItem({{ $item->id }}, event)">
                         🗑️
                     </button>
@@ -3326,6 +3324,108 @@
     </div>
 </div>
 
+<!-- MODAL: SINGLE GROCERY ITEM 1-CLICK PURCHASE & INSTANT EXPENSE CONVERSION -->
+<div class="modal-backdrop hidden" id="buySingleGroceryItemModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                    <span>🛒</span>
+                    <span>تسجيل شراء: <span id="modalBuyItemNameTitle" style="color: #34d399;"></span></span>
+                </h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">
+                    أدخل سعر الغرض الفعلي ونوع الشراء لترحيلها فوراً كمصروف وإشعار الشريك
+                </p>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('buySingleGroceryItemModal')">&times;</button>
+        </div>
+
+        <form id="buySingleGroceryItemForm" onsubmit="handleSingleBuySubmit(event)" style="padding: 1.25rem 1.5rem;">
+            @csrf
+            <input type="hidden" id="modalBuyItemId">
+
+            <!-- Item Badge Summary -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 1.15rem; display: flex; align-items: center; gap: 0.75rem;">
+                <span id="modalBuyItemIcon" style="font-size: 1.6rem; line-height: 1;">🛒</span>
+                <div style="flex: 1;">
+                    <div id="modalBuyItemName" style="font-size: 1.05rem; font-weight: 800; color: #f8fafc;"></div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                        <span>التصنيف: <strong id="modalBuyItemCategory" style="color: #38bdf8;"></strong></span>
+                    </div>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 0.3rem 0.65rem; border-radius: 8px; font-size: 0.75rem; font-weight: 800; color: #34d399;">
+                    جاهز للترحيل ⚡
+                </div>
+            </div>
+
+            <!-- Price Paid Input -->
+            <div class="form-group">
+                <label style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
+                    سعر الغرض الفعلي (بالشيكل ₪): *
+                </label>
+                <div style="position: relative;">
+                    <input type="number" step="any" min="0.1" name="amount" id="modalBuyAmount" class="styled-input" style="font-size: 1.45rem; font-weight: 900; color: #10b981; padding-left: 2.8rem; text-align: left; direction: ltr;" placeholder="0.00" required autofocus autocomplete="off">
+                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 900; font-size: 1.25rem; color: #10b981;">₪</span>
+                </div>
+                <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 0.3rem;">
+                    سجل قديش كلف الغرض بالضبط ليتم خصمه من الظرف وإشعار الشريك به.
+                </small>
+            </div>
+
+            <!-- Payment Method Pills -->
+            <div class="form-group" style="margin-top: 1rem;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 0.4rem; display: block;">نوع الشراء / طريقة الدفع: *</label>
+                <input type="hidden" name="payment_method" id="modalBuyPaymentMethod" value="cash">
+                <div class="payment-method-pills" id="modalBuyPaymentPills">
+                    <button type="button" class="pay-pill" data-value="transfer" onclick="setBuyPaymentMethod('transfer')">
+                        <span class="pay-pill-icon">📱</span>
+                        <span class="pay-pill-label">تطبيق</span>
+                        <span class="pay-pill-sub">رصيد حي</span>
+                    </button>
+                    <button type="button" class="pay-pill active" data-value="cash" onclick="setBuyPaymentMethod('cash')">
+                        <span class="pay-pill-icon">💵</span>
+                        <span class="pay-pill-label">كاش</span>
+                        <span class="pay-pill-sub">نقدي</span>
+                    </button>
+                    <button type="button" class="pay-pill" data-value="card" onclick="setBuyPaymentMethod('card')">
+                        <span class="pay-pill-icon">💳</span>
+                        <span class="pay-pill-label">بطاقة</span>
+                        <span class="pay-pill-sub">صراف</span>
+                    </button>
+                    <button type="button" class="pay-pill" data-value="credit" onclick="setBuyPaymentMethod('credit')">
+                        <span class="pay-pill-icon">📑</span>
+                        <span class="pay-pill-label">ذمم</span>
+                        <span class="pay-pill-sub">شكك</span>
+                    </button>
+                </div>
+                <div id="modalBuyPaymentHint" class="payment-hint-bar hint-cash" style="margin-top: 0.45rem;">
+                    💵 سيُخصم من <strong>الكاش الفعلي</strong> (المجمد)
+                </div>
+            </div>
+
+            <!-- Target Envelope -->
+            <div class="form-group" style="margin-top: 1rem;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 0.35rem; display: block;">الظرف المالي المستهدف: *</label>
+                <select name="envelope_id" id="modalBuyEnvelope" class="styled-input" required>
+                    @foreach($envelopes as $env)
+                        <option value="{{ $env->id }}" {{ $env->id == $defaultEnvId ? 'selected' : '' }}>
+                            {{ $env->icon ?? '✉️' }} {{ $env->name }} (رصيد متبقي: {{ number_format($env->remaining_budget, 1) }} ₪)
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 1.35rem; display: flex; gap: 0.75rem;">
+                <button type="button" class="btn-subtle" onclick="closeModal('buySingleGroceryItemModal')" style="flex: 1;">إلغاء</button>
+                <button type="submit" class="btn-primary" id="modalBuySubmitBtn" style="flex: 2; background: linear-gradient(135deg, #10b981, #059669); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <span>💳</span>
+                    <span>تأكيد الشراء وترحيل للمصروفات</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -4589,14 +4689,12 @@
     // =========================================================================
 
     // Quick suggestion fill
-    window.quickFillGrocery = function(name, category, price) {
+    window.quickFillGrocery = function(name, category) {
         const inputName = document.getElementById('groceryInputName');
         const selectCat = document.getElementById('grocerySelectCategory');
-        const inputPrice = document.getElementById('groceryInputPrice');
 
         if (inputName) inputName.value = name;
         if (selectCat && category) selectCat.value = category;
-        if (inputPrice && price) inputPrice.value = price;
         if (inputName) inputName.focus();
     };
 
@@ -4622,16 +4720,10 @@
         const pendingRows = rows.filter(r => r.getAttribute('data-bought') === '0');
         const boughtRows = rows.filter(r => r.getAttribute('data-bought') === '1');
 
-        let estimatedSum = 0;
-        if (pendingRows.length > 0) {
-            pendingRows.forEach(r => {
-                estimatedSum += parseFloat(r.getAttribute('data-price') || 0);
-            });
-        } else {
-            boughtRows.forEach(r => {
-                estimatedSum += parseFloat(r.getAttribute('data-price') || 0);
-            });
-        }
+        let boughtSum = 0;
+        boughtRows.forEach(r => {
+            boughtSum += parseFloat(r.getAttribute('data-price') || 0);
+        });
 
         const statPending = document.getElementById('groceryStatPending');
         const statBought = document.getElementById('groceryStatBought');
@@ -4642,7 +4734,7 @@
 
         if (statPending) statPending.textContent = pendingRows.length;
         if (statBought) statBought.textContent = boughtRows.length;
-        if (statEstimated) statEstimated.textContent = estimatedSum.toFixed(1);
+        if (statEstimated) statEstimated.textContent = boughtSum.toFixed(1);
         if (bannerCount) bannerCount.textContent = boughtRows.length;
 
         if (banner) {
@@ -4679,12 +4771,10 @@
         e.preventDefault();
         const inputName = document.getElementById('groceryInputName');
         const selectCat = document.getElementById('grocerySelectCategory');
-        const inputPrice = document.getElementById('groceryInputPrice');
         const submitBtn = document.getElementById('grocerySubmitBtn');
 
         const name = inputName ? inputName.value.trim() : '';
         const category = selectCat ? selectCat.value : 'groceries';
-        const price = inputPrice && inputPrice.value ? parseFloat(inputPrice.value) : null;
 
         if (!name) return;
 
@@ -4693,7 +4783,7 @@
         const payload = {
             name: name,
             category: category,
-            estimated_price: price
+            estimated_price: null
         };
 
         // If Offline
@@ -4704,7 +4794,7 @@
                     id: tempId,
                     name: name,
                     category: category,
-                    estimated_price: price,
+                    estimated_price: null,
                     is_bought: false,
                     is_offline: true,
                     created_at_human: 'الآن (محلياً 📴)'
@@ -4714,7 +4804,6 @@
                 }
             }
             if (inputName) inputName.value = '';
-            if (inputPrice) inputPrice.value = '';
             if (submitBtn) submitBtn.disabled = false;
             updateGroceryDOMStats();
             return;
@@ -4737,7 +4826,6 @@
             if (data.success && data.item) {
                 renderNewGroceryItemInDOM(data.item);
                 if (inputName) inputName.value = '';
-                if (inputPrice) inputPrice.value = '';
                 if (window.showPartnerToast) {
                     showPartnerToast('🛒 تمت الإضافة', `أضيف "${name}" لقائمة المقاضي`, '✅');
                 }
@@ -4754,7 +4842,7 @@
                     id: tempId,
                     name: name,
                     category: category,
-                    estimated_price: price,
+                    estimated_price: null,
                     is_bought: false,
                     is_offline: true,
                     created_at_human: 'الآن (محلياً 📴)'
@@ -4805,7 +4893,9 @@
                 </div>
             </div>
             <div class="grocery-item-end">
-                ${item.estimated_price ? `<span class="grocery-item-price">~${parseFloat(item.estimated_price).toFixed(1)} ₪</span>` : ''}
+                <span class="grocery-item-price" id="groceryItemPrice_${item.id}" style="${(item.estimated_price && item.estimated_price > 0) ? '' : 'display: none;'}">
+                    ${(item.estimated_price && item.estimated_price > 0) ? `~${parseFloat(item.estimated_price).toFixed(1)} ₪` : ''}
+                </span>
                 <button type="button" class="grocery-del-btn" title="حذف الغرض" onclick="deleteGroceryItem(${item.id}, event)">
                     🗑️
                 </button>
@@ -4819,19 +4909,255 @@
         }
     }
 
+    // Single Item Purchase Modal
+    window.openBuyGroceryItemModal = function(id) {
+        const row = document.getElementById(`groceryItemRow_${id}`);
+        if (!row) return;
+
+        const nameEl = row.querySelector('.grocery-item-name');
+        const itemName = nameEl ? nameEl.textContent.trim() : 'غرض';
+        const category = row.getAttribute('data-category') || 'groceries';
+        const catBadge = row.querySelector('.grocery-cat-badge');
+        const itemIcon = catBadge ? catBadge.textContent.trim() : '🛒';
+
+        const modal = document.getElementById('buySingleGroceryItemModal');
+        if (!modal) return;
+
+        document.getElementById('modalBuyItemId').value = id;
+        document.getElementById('modalBuyItemNameTitle').textContent = itemName;
+        document.getElementById('modalBuyItemName').textContent = itemName;
+        document.getElementById('modalBuyItemIcon').textContent = itemIcon;
+
+        const catLabels = {
+            groceries: 'بقالة وتموين',
+            produce: 'خضار وفواكه',
+            dairy: 'ألبان وأجبان',
+            cleaning: 'منظفات وعناية',
+            pharmacy: 'صيدلية وصحة',
+            meat: 'لحوم ودواجن',
+            other: 'أخرى'
+        };
+        const catEl = document.getElementById('modalBuyItemCategory');
+        if (catEl) catEl.textContent = catLabels[category] || category;
+
+        const amountInput = document.getElementById('modalBuyAmount');
+        if (amountInput) {
+            amountInput.value = '';
+        }
+
+        // Set default payment method: cash
+        setBuyPaymentMethod('cash');
+
+        openModal('buySingleGroceryItemModal');
+
+        setTimeout(() => {
+            if (amountInput) {
+                amountInput.focus();
+                amountInput.select();
+            }
+        }, 120);
+    };
+
+    // Payment method pill selection in Buy Modal
+    window.setBuyPaymentMethod = function(method) {
+        const input = document.getElementById('modalBuyPaymentMethod');
+        if (input) input.value = method;
+
+        const pills = document.querySelectorAll('#modalBuyPaymentPills .pay-pill');
+        pills.forEach(pill => {
+            if (pill.getAttribute('data-value') === method) {
+                pill.classList.add('active');
+            } else {
+                pill.classList.remove('active');
+            }
+        });
+
+        const hintEl = document.getElementById('modalBuyPaymentHint');
+        if (hintEl) {
+            hintEl.className = `payment-hint-bar hint-${method}`;
+            if (method === 'transfer') {
+                hintEl.innerHTML = '📱 سيُخصم من <strong>رصيد التطبيق الفعّال</strong> (السيولة الحية)';
+            } else if (method === 'cash') {
+                hintEl.innerHTML = '💵 سيُخصم من <strong>الكاش الفعلي</strong> (المجمد)';
+            } else if (method === 'card') {
+                hintEl.innerHTML = '💳 سيُسجل كدفع عبر <strong>البطاقة المصرفية</strong>';
+            } else if (method === 'credit') {
+                hintEl.innerHTML = '📑 سيُسجل كـ <strong>دين مؤجل (شكك/سلف)</strong>';
+            }
+        }
+    };
+
+    // Handle Buy Single Item Form Submit
+    window.handleSingleBuySubmit = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('modalBuyItemId').value;
+        const row = document.getElementById(`groceryItemRow_${id}`);
+        const submitBtn = document.getElementById('modalBuySubmitBtn');
+        const amountInput = document.getElementById('modalBuyAmount');
+        const paymentMethod = document.getElementById('modalBuyPaymentMethod').value || 'cash';
+        const envelopeSelect = document.getElementById('modalBuyEnvelope');
+        const envelopeId = envelopeSelect ? envelopeSelect.value : null;
+
+        const amount = parseFloat(amountInput ? amountInput.value : 0);
+        if (!amount || amount <= 0) {
+            alert('يرجى إدخال سعر الغرض الفعلي (أكبر من 0).');
+            if (amountInput) amountInput.focus();
+            return;
+        }
+
+        const itemName = document.getElementById('modalBuyItemName').textContent.trim();
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        const payload = {
+            amount: amount,
+            payment_method: paymentMethod,
+            envelope_id: envelopeId,
+            date: new Date().toISOString().split('T')[0],
+            note: `شراء مقاضي: ${itemName}`
+        };
+
+        // If Offline
+        if (!navigator.onLine || String(id).startsWith('temp_')) {
+            if (window.offlineEngine && typeof window.offlineEngine.saveOfflineTransaction === 'function') {
+                await window.offlineEngine.saveOfflineTransaction({
+                    type: 'expense',
+                    amount: payload.amount,
+                    envelope_id: payload.envelope_id,
+                    payment_method: payload.payment_method,
+                    date: payload.date,
+                    note: payload.note
+                });
+
+                if (window.offlineEngine.toggleOfflineGroceryItem) {
+                    window.offlineEngine.toggleOfflineGroceryItem(id, true);
+                }
+            }
+
+            if (row) {
+                row.setAttribute('data-bought', '1');
+                row.setAttribute('data-price', amount);
+                row.classList.add('is-bought');
+                const priceEl = document.getElementById(`groceryItemPrice_${id}`) || row.querySelector('.grocery-item-price');
+                if (priceEl) {
+                    priceEl.textContent = `~${amount.toFixed(1)} ₪`;
+                    priceEl.style.display = 'inline-block';
+                }
+            }
+
+            closeModal('buySingleGroceryItemModal');
+            updateGroceryDOMStats();
+
+            if (window.showPartnerToast) {
+                showPartnerToast('📴 سُجل بدون إنترنت', `سُجل شراء "${itemName}" بقيمة ${amount} ₪ وسيزامن لاحقاً`, '🛍️');
+            }
+
+            if (submitBtn) submitBtn.disabled = false;
+            return;
+        }
+
+        // If Online
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch(`/grocery-items/${id}/buy`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 80,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+
+                if (row) {
+                    row.setAttribute('data-bought', '1');
+                    row.setAttribute('data-price', amount);
+                    row.classList.add('is-bought');
+
+                    const priceEl = document.getElementById(`groceryItemPrice_${id}`) || row.querySelector('.grocery-item-price');
+                    if (priceEl) {
+                        priceEl.textContent = `~${amount.toFixed(1)} ₪`;
+                        priceEl.style.display = 'inline-block';
+                    }
+
+                    const metaEl = row.querySelector('.grocery-item-meta');
+                    if (metaEl && !metaEl.querySelector('.buyer-tag')) {
+                        const buyerSpan = document.createElement('span');
+                        buyerSpan.innerHTML = ` • ✔️ شطبه: <bdi class="buyer-tag" style="font-weight: 700; color: #34d399;">أنا</bdi>`;
+                        metaEl.appendChild(buyerSpan);
+                    }
+                }
+
+                closeModal('buySingleGroceryItemModal');
+                updateGroceryDOMStats();
+
+                if (window.showPartnerToast) {
+                    showPartnerToast('💳 تم الشراء والترحيل', data.message || `تم ترحيل مصروف بقيمة ${amount} ₪ في ظرف البقالة بنجاح`, '🎉');
+                }
+            } else {
+                alert(data.message || 'تعذر تسجيل الشراء');
+            }
+        } catch(err) {
+            console.error('Error buying grocery item:', err);
+            alert('حدث خطأ أثناء الاتصال بالخادم.');
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    };
+
     // Toggle bought status
     window.toggleGroceryItem = async function(id) {
         const row = document.getElementById(`groceryItemRow_${id}`);
         if (!row) return;
 
         const isCurrentlyBought = row.getAttribute('data-bought') === '1';
-        const newBought = !isCurrentlyBought;
 
-        row.setAttribute('data-bought', newBought ? '1' : '0');
-        if (newBought) {
-            row.classList.add('is-bought');
+        if (!isCurrentlyBought) {
+            // Item is NOT bought yet -> Open Buy Modal to input price & payment method
+            openBuyGroceryItemModal(id);
+            return;
+        }
+
+        // Item is ALREADY bought -> Ask for confirmation before undoing and refunding
+        const nameEl = row.querySelector('.grocery-item-name');
+        const itemName = nameEl ? nameEl.textContent.trim() : 'هذا الغرض';
+
+        let confirmed = false;
+        if (typeof window.showCustomConfirm === 'function') {
+            confirmed = await window.showCustomConfirm({
+                title: 'إلغاء شراء الغرض واسترداد المصروف',
+                message: `الغرض "${itemName}" تم شراؤه وترحيله كمصروف. هل تريد التراجع عن شرائه، وحذف المصروف واسترداد المبلغ إلى الظرف؟`,
+                confirmText: 'نعم، إلغاء الشراء واسترداد المبلغ',
+                cancelText: 'إبقاء كمشترى',
+                icon: '↩️',
+                isDanger: true
+            });
         } else {
-            row.classList.remove('is-bought');
+            confirmed = confirm(`الغرض "${itemName}" تم شراؤه وترحيله كمصروف. هل تريد التراجع عن شرائه وحذف المصروف؟`);
+        }
+
+        if (!confirmed) return;
+
+        // Perform undo
+        row.setAttribute('data-bought', '0');
+        row.classList.remove('is-bought');
+        row.setAttribute('data-price', '0');
+        const priceEl = document.getElementById(`groceryItemPrice_${id}`) || row.querySelector('.grocery-item-price');
+        if (priceEl) priceEl.style.display = 'none';
+
+        const buyerTag = row.querySelector('.buyer-tag');
+        if (buyerTag && buyerTag.parentElement) {
+            buyerTag.parentElement.remove();
         }
 
         updateGroceryDOMStats();
@@ -4839,7 +5165,7 @@
         // If offline
         if (!navigator.onLine || String(id).startsWith('temp_')) {
             if (window.offlineEngine && typeof window.offlineEngine.toggleOfflineGroceryItem === 'function') {
-                window.offlineEngine.toggleOfflineGroceryItem(id, newBought);
+                window.offlineEngine.toggleOfflineGroceryItem(id, false);
             }
             return;
         }
@@ -4856,18 +5182,19 @@
                 }
             });
             const data = await res.json();
-            if (!data.success) {
+            if (data.success) {
+                if (window.showPartnerToast) {
+                    showPartnerToast('↩️ تراجع عن الشراء', data.message || 'تم التراجع واسترداد المصروف بنجاح', '🔄');
+                }
+            } else {
                 // Revert on error
-                row.setAttribute('data-bought', isCurrentlyBought ? '1' : '0');
-                if (isCurrentlyBought) row.classList.add('is-bought');
-                else row.classList.remove('is-bought');
+                row.setAttribute('data-bought', '1');
+                row.classList.add('is-bought');
                 updateGroceryDOMStats();
+                alert(data.message || 'تعذر التراجع عن الشراء');
             }
         } catch(err) {
-            // Queue offline on failure
-            if (window.offlineEngine && typeof window.offlineEngine.toggleOfflineGroceryItem === 'function') {
-                window.offlineEngine.toggleOfflineGroceryItem(id, newBought);
-            }
+            console.error('Error toggling grocery item:', err);
         }
     };
 

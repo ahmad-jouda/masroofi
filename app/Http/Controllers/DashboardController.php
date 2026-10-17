@@ -55,7 +55,7 @@ class DashboardController extends Controller
             ->get();
         $pendingGroceryCount = $groceryItems->where('is_bought', false)->count();
         $boughtGroceryCount = $groceryItems->where('is_bought', true)->count();
-        $estimatedGroceryTotal = (float) $groceryItems->where('is_bought', false)->sum('estimated_price');
+        $estimatedGroceryTotal = (float) $groceryItems->where('is_bought', true)->sum('estimated_price');
         $groceryCategories = GroceryItem::CATEGORIES;
 
         // 1. Auto-Cycle Calculations with Cycle Browsing Support

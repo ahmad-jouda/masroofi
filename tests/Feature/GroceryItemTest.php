@@ -134,6 +134,50 @@ class GroceryItemTest extends TestCase
         $this->assertDatabaseMissing('grocery_items', ['id' => $item->id]);
     }
 
+    public function test_user_can_buy_single_item_directly_with_price_and_payment_method(): void
+    {
+        $item = GroceryItem::create([
+            'workspace_id' => $this->workspace->id,
+            'user_id' => $this->wife->id,
+            'name' => 'جبنة كيري 🧀',
+            'category' => 'dairy',
+            'is_bought' => false,
+        ]);
+
+        $response = $this->actingAs($this->husband)->postJson(route('grocery-items.buy', $item), [
+            'amount' => 14.50,
+            'payment_method' => 'cash',
+            'envelope_id' => $this->groceryEnvelope->id,
+            'date' => now()->toDateString(),
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $this->assertDatabaseHas('transactions', [
+            'workspace_id' => $this->workspace->id,
+            'type' => 'expense',
+            'amount' => 14.50,
+            'envelope_id' => $this->groceryEnvelope->id,
+            'payment_method' => 'cash',
+        ]);
+
+        $item->refresh();
+        $this->assertTrue($item->is_bought);
+        $this->assertEquals(14.50, $item->estimated_price);
+        $this->assertNotNull($item->transaction_id);
+        $this->assertEquals($this->husband->id, $item->bought_by);
+
+        // Partner notification dispatched
+        $this->assertDatabaseHas('partner_notifications', [
+            'workspace_id' => $this->workspace->id,
+            'actor_id' => $this->husband->id,
+            'type' => 'grocery_bought_item',
+        ]);
+    }
+
     public function test_user_can_convert_bought_grocery_items_to_expense_in_envelope(): void
     {
         $item1 = GroceryItem::create([

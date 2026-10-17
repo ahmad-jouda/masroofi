@@ -92,6 +92,16 @@ class GroceryItemController extends Controller
     public function toggle(Request $request, GroceryItem $groceryItem): JsonResponse|RedirectResponse
     {
         $newStatus = ! $groceryItem->is_bought;
+
+        // If unchecking an item that was associated with a recorded transaction, delete the transaction to refund the envelope
+        if (! $newStatus && $groceryItem->transaction_id) {
+            $linkedTx = Transaction::find($groceryItem->transaction_id);
+            if ($linkedTx) {
+                $linkedTx->delete();
+            }
+            $groceryItem->transaction_id = null;
+        }
+
         $groceryItem->is_bought = $newStatus;
         $groceryItem->bought_by = $newStatus ? $request->user()->id : null;
         $groceryItem->bought_at = $newStatus ? Carbon::now() : null;
@@ -103,11 +113,104 @@ class GroceryItemController extends Controller
             return response()->json([
                 'success' => true,
                 'item' => $groceryItem,
-                'message' => $newStatus ? 'تم شطب الغرض كتم شراؤه ✔️' : 'تمت إعادة الغرض إلى القائمة 🔄',
+                'message' => $newStatus ? 'تم شطب الغرض كتم شراؤه ✔️' : 'تمت إعادة الغرض إلى القائمة وإلغاء خصم المصروف 🔄',
             ]);
         }
 
         return back()->with('success', 'تم تحديث حالة الغرض بنجاح');
+    }
+
+    /**
+     * Buy an item directly from the supermarket: records expense in envelope and marks item as bought.
+     */
+    public function buy(Request $request, GroceryItem $groceryItem): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|in:card,cash,transfer,credit',
+            'envelope_id' => 'nullable|exists:envelopes,id',
+            'date' => 'nullable|date',
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        $envelopeId = $validated['envelope_id'] ?? null;
+        if (! $envelopeId) {
+            $defaultEnvelope = Envelope::where('name', 'like', '%بقالة%')->first()
+                ?? Envelope::first();
+            $envelopeId = $defaultEnvelope?->id;
+        }
+
+        $date = $validated['date'] ?? Carbon::today()->toDateString();
+        $note = ! empty($validated['note']) ? $validated['note'] : "شراء مقاضي: {$groceryItem->name}";
+
+        $transaction = null;
+        $adjustmentMessage = null;
+
+        DB::transaction(function () use ($validated, $envelopeId, $date, $note, $groceryItem, $request, &$transaction) {
+            $transaction = Transaction::create([
+                'type' => 'expense',
+                'amount' => $validated['amount'],
+                'envelope_id' => $envelopeId,
+                'goal_id' => null,
+                'date' => $date,
+                'payment_method' => $validated['payment_method'],
+                'note' => $note,
+            ]);
+
+            $groceryItem->update([
+                'is_bought' => true,
+                'bought_by' => $request->user()->id,
+                'bought_at' => Carbon::now(),
+                'estimated_price' => $validated['amount'],
+                'transaction_id' => $transaction->id,
+            ]);
+        });
+
+        // Recalculate surplus if past date
+        if (Carbon::parse($date)->lt(Carbon::today())) {
+            $adjustment = DailySurplusAdjustmentService::recalculateForDate($date);
+            if ($adjustment) {
+                $adjustmentMessage = DailySurplusAdjustmentService::formatAdjustmentSummary($adjustment);
+            }
+        }
+
+        // Notify partner
+        $partnerName = $request->user()->name;
+        $formattedAmount = number_format((float) $validated['amount'], 2);
+        $methodLabel = match ($validated['payment_method']) {
+            'cash' => 'كاش 💵',
+            'transfer' => 'تطبيق/تحويل 📲',
+            'card' => 'بطاقة 💳',
+            'credit' => 'ذمم/شكك 📑',
+            default => $validated['payment_method'],
+        };
+
+        PartnerNotification::notifyPartner(
+            workspaceId: (int) $request->user()->workspace_id,
+            actorId: (int) $request->user()->id,
+            type: 'grocery_bought_item',
+            title: '🛒 تم شراء غرض من المقاضي',
+            message: "👤 اشترى {$partnerName}: {$groceryItem->name} بقيمة {$formattedAmount} ₪ ({$methodLabel})",
+            icon: '🛍️'
+        );
+
+        $msg = "تم تسجيل شراء {$groceryItem->name} بقيمة {$formattedAmount} ₪ وترحيلها للمصروفات بنجاح ✅";
+        if ($adjustmentMessage) {
+            $msg .= ' '.$adjustmentMessage;
+        }
+
+        $groceryItem->load(['user', 'buyer', 'transaction']);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'item' => $groceryItem,
+                'transaction' => $transaction->load(['envelope']),
+            ]);
+        }
+
+        return redirect()->route('dashboard')->with('success', $msg);
     }
 
     /**
@@ -176,7 +279,7 @@ class GroceryItemController extends Controller
             $itemNames .= ' وأخرى...';
         }
 
-        $note = $validated['note'] ?: "مقاضي البيت ({$itemsToConvert->count()} أصناف: {$itemNames})";
+        $note = ! empty($validated['note']) ? $validated['note'] : "مقاضي البيت ({$itemsToConvert->count()} أصناف: {$itemNames})";
 
         $transaction = null;
         $adjustmentMessage = null;

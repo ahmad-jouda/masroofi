@@ -118,6 +118,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/grocery-items', [GroceryItemController::class, 'index'])->name('grocery-items.index');
     Route::post('/grocery-items', [GroceryItemController::class, 'store'])->name('grocery-items.store');
     Route::post('/grocery-items/{groceryItem}/toggle', [GroceryItemController::class, 'toggle'])->name('grocery-items.toggle');
+    Route::post('/grocery-items/{groceryItem}/buy', [GroceryItemController::class, 'buy'])->name('grocery-items.buy');
     Route::delete('/grocery-items/{groceryItem}', [GroceryItemController::class, 'destroy'])->name('grocery-items.destroy');
     Route::post('/grocery-items/convert-expense', [GroceryItemController::class, 'convertToExpense'])->name('grocery-items.convert-expense');
     Route::post('/grocery-items/sync', [GroceryItemController::class, 'syncOffline'])->name('grocery-items.sync');
