@@ -3343,7 +3343,7 @@
             <button type="button" class="buy-grocery-close-btn" onclick="closeModal('buySingleGroceryItemModal')" title="إغلاق">&times;</button>
         </div>
 
-        <form id="buySingleGroceryItemForm" onsubmit="handleSingleBuySubmit(event)" style="padding: 1.25rem 1.45rem;">
+        <form id="buySingleGroceryItemForm" class="buy-grocery-form-body" onsubmit="handleSingleBuySubmit(event)">
             @csrf
             <input type="hidden" id="modalBuyItemId">
 
@@ -3387,8 +3387,8 @@
             </div>
 
             <!-- Payment Method Cards -->
-            <div style="margin-top: 1.15rem;">
-                <label style="font-weight: 800; font-size: 0.88rem; color: #f1f5f9; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="margin-top: 0.75rem;">
+                <label style="font-weight: 800; font-size: 0.85rem; color: #f1f5f9; margin-bottom: 0.3rem; display: flex; align-items: center; justify-content: space-between;">
                     <span>نوع الشراء وطريقة الدفع:</span>
                     <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">اختر المصدر الفعلي</span>
                 </label>
@@ -3425,8 +3425,8 @@
             </div>
 
             <!-- Target Envelope -->
-            <div style="margin-top: 1.1rem;">
-                <label style="font-weight: 800; font-size: 0.88rem; color: #f1f5f9; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="margin-top: 0.75rem;">
+                <label style="font-weight: 800; font-size: 0.85rem; color: #f1f5f9; margin-bottom: 0.3rem; display: flex; align-items: center; justify-content: space-between;">
                     <span>الظرف المالي المستهدف:</span>
                     <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">خصم مباشر من الميزانية</span>
                 </label>
@@ -3440,7 +3440,7 @@
             </div>
 
             <!-- Actions -->
-            <div style="margin-top: 1.35rem; display: flex; gap: 0.65rem;">
+            <div style="margin-top: 1rem; display: flex; gap: 0.65rem; padding-bottom: 0.25rem;">
                 <button type="button" class="buy-grocery-cancel-btn" onclick="closeModal('buySingleGroceryItemModal')" style="flex: 1;">
                     إلغاء
                 </button>

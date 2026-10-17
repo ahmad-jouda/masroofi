@@ -6324,16 +6324,30 @@ input.flatpickr-custom-input {
 }
 
 /* =========================================================================
-   LUXURY 1-CLICK GROCERY PURCHASE MODAL DESIGN SYSTEM
+   LUXURY 1-CLICK GROCERY PURCHASE MODAL DESIGN SYSTEM (SCROLLABLE & RESPONSIVE)
    ========================================================================= */
 
+#buySingleGroceryItemModal {
+  overflow-y: auto !important;
+  align-items: center !important;
+  padding: 1.25rem 0.5rem !important;
+  display: flex !important;
+}
+
+#buySingleGroceryItemModal.hidden {
+  display: none !important;
+}
+
 .buy-grocery-modal-card {
-  max-width: 470px !important;
+  max-width: 460px !important;
   width: 95% !important;
-  margin: 1.5rem auto !important;
+  margin: auto !important;
+  max-height: min(92vh, 730px) !important;
+  display: flex !important;
+  flex-direction: column !important;
   background: linear-gradient(165deg, #182338 0%, #0d1527 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 26px !important;
+  border-radius: 24px !important;
   box-shadow: 0 30px 65px -15px rgba(0, 0, 0, 0.75), 0 0 45px rgba(16, 185, 129, 0.15) !important;
   overflow: hidden !important;
   backdrop-filter: blur(20px) !important;
@@ -6347,12 +6361,13 @@ input.flatpickr-custom-input {
 }
 
 .buy-grocery-modal-header {
-  padding: 1.35rem 1.6rem 1rem 1.6rem !important;
+  padding: 0.95rem 1.35rem 0.75rem 1.35rem !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%) !important;
+  flex-shrink: 0 !important;
 }
 
 .buy-grocery-badge-tag {
@@ -6362,22 +6377,22 @@ input.flatpickr-custom-input {
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #34d399;
-  font-size: 0.73rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  padding: 0.2rem 0.65rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 20px;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
 }
 
 .buy-grocery-modal-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 900;
   color: #f8fafc;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  line-height: 1.3;
+  gap: 0.4rem;
+  line-height: 1.25;
 }
 
 .buy-grocery-modal-title span.item-highlight {
@@ -6386,18 +6401,19 @@ input.flatpickr-custom-input {
 }
 
 .buy-grocery-close-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #94a3b8;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .buy-grocery-close-btn:hover {
@@ -6407,16 +6423,37 @@ input.flatpickr-custom-input {
   transform: rotate(90deg);
 }
 
+/* Scrollable Form Body */
+.buy-grocery-form-body {
+  padding: 0.85rem 1.35rem 1.25rem 1.35rem !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex: 1 1 auto !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(16, 185, 129, 0.4) transparent !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+
+.buy-grocery-form-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.buy-grocery-form-body::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.4);
+  border-radius: 6px;
+}
+
 /* Hero Item Preview Banner */
 .buy-grocery-hero-banner {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
   border: 1px solid rgba(16, 185, 129, 0.25) !important;
-  border-radius: 18px !important;
-  padding: 0.95rem 1.15rem !important;
-  margin-bottom: 1.2rem !important;
+  border-radius: 16px !important;
+  padding: 0.65rem 0.95rem !important;
+  margin-bottom: 0.85rem !important;
   display: flex !important;
   align-items: center !important;
-  gap: 0.9rem !important;
+  gap: 0.85rem !important;
   position: relative !important;
   overflow: hidden !important;
 }
@@ -6433,17 +6470,17 @@ input.flatpickr-custom-input {
 }
 
 .buy-grocery-icon-avatar {
-  width: 50px;
-  height: 50px;
-  min-width: 50px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(56, 189, 248, 0.15));
   border: 1px solid rgba(16, 185, 129, 0.4);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.85rem;
+  font-size: 1.6rem;
   line-height: 1;
 }
 
@@ -6453,10 +6490,10 @@ input.flatpickr-custom-input {
 }
 
 .buy-grocery-item-name-big {
-  font-size: 1.12rem;
+  font-size: 1.05rem;
   font-weight: 900;
   color: #ffffff;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
   letter-spacing: -0.3px;
   white-space: nowrap;
   overflow: hidden;
@@ -6467,11 +6504,11 @@ input.flatpickr-custom-input {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: #38bdf8;
   font-weight: 700;
   background: rgba(56, 189, 248, 0.1);
-  padding: 0.15rem 0.5rem;
+  padding: 0.1rem 0.45rem;
   border-radius: 6px;
   border: 1px solid rgba(56, 189, 248, 0.25);
 }
@@ -6479,9 +6516,9 @@ input.flatpickr-custom-input {
 .buy-grocery-status-pill {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.08));
   border: 1px solid rgba(16, 185, 129, 0.35);
-  padding: 0.35rem 0.7rem;
-  border-radius: 10px;
-  font-size: 0.72rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
   font-weight: 800;
   color: #34d399;
   white-space: nowrap;
@@ -6491,9 +6528,9 @@ input.flatpickr-custom-input {
 .buy-grocery-price-box {
   background: rgba(11, 17, 30, 0.9) !important;
   border: 2px solid rgba(16, 185, 129, 0.35) !important;
-  border-radius: 20px !important;
-  padding: 1.1rem 1.25rem 0.95rem 1.25rem !important;
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 25px rgba(16, 185, 129, 0.1) !important;
+  border-radius: 18px !important;
+  padding: 0.75rem 1rem 0.65rem 1rem !important;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 20px rgba(16, 185, 129, 0.1) !important;
   transition: all 0.25s ease !important;
   position: relative !important;
   text-align: center !important;
@@ -6501,15 +6538,15 @@ input.flatpickr-custom-input {
 
 .buy-grocery-price-box:focus-within {
   border-color: #10b981 !important;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 35px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 30px rgba(16, 185, 129, 0.25) !important;
   background: rgba(13, 21, 38, 0.98) !important;
 }
 
 .buy-grocery-price-label {
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: var(--text-secondary, #94a3b8);
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.35rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6525,7 +6562,7 @@ input.flatpickr-custom-input {
 }
 
 .buy-grocery-currency-symbol {
-  font-size: 1.85rem;
+  font-size: 1.65rem;
   font-weight: 900;
   color: #10b981;
   text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
@@ -6533,17 +6570,17 @@ input.flatpickr-custom-input {
 }
 
 .buy-grocery-amount-input {
-  font-size: 2.7rem !important;
+  font-size: 2.3rem !important;
   font-weight: 900 !important;
   color: #34d399 !important;
   text-align: center !important;
   background: transparent !important;
   border: none !important;
   outline: none !important;
-  width: 180px !important;
+  width: 170px !important;
   letter-spacing: -1px !important;
   font-family: inherit !important;
-  text-shadow: 0 0 25px rgba(52, 211, 153, 0.35) !important;
+  text-shadow: 0 0 20px rgba(52, 211, 153, 0.35) !important;
   padding: 0 !important;
 }
 
@@ -6559,11 +6596,11 @@ input.flatpickr-custom-input {
 /* Quick Price Fast-Add Chips */
 .buy-grocery-quick-chips {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-top: 0.75rem;
-  padding-top: 0.65rem;
+  margin-top: 0.55rem;
+  padding-top: 0.5rem;
   border-top: 1px dashed rgba(255, 255, 255, 0.08);
 }
 
@@ -6571,9 +6608,9 @@ input.flatpickr-custom-input {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #cbd5e1;
-  border-radius: 9px;
-  padding: 0.28rem 0.65rem;
-  font-size: 0.78rem;
+  border-radius: 8px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.74rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -6602,19 +6639,19 @@ input.flatpickr-custom-input {
 .buy-grocery-pay-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.55rem;
-  margin-top: 0.4rem;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
 }
 
 .luxury-pay-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1.5px solid rgba(255, 255, 255, 0.09);
-  border-radius: 14px;
-  padding: 0.65rem 0.35rem;
+  border-radius: 12px;
+  padding: 0.5rem 0.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -6628,7 +6665,7 @@ input.flatpickr-custom-input {
 }
 
 .luxury-pay-icon {
-  font-size: 1.45rem;
+  font-size: 1.3rem;
   line-height: 1;
   transition: transform 0.2s ease;
 }
@@ -6638,13 +6675,13 @@ input.flatpickr-custom-input {
 }
 
 .luxury-pay-title {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 800;
   color: var(--text-primary, #f8fafc);
 }
 
 .luxury-pay-sub {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--text-muted, #94a3b8);
   font-weight: 600;
 }
@@ -6653,41 +6690,41 @@ input.flatpickr-custom-input {
 .luxury-pay-card.active[data-value="transfer"] {
   background: linear-gradient(145deg, rgba(59, 130, 246, 0.22), rgba(59, 130, 246, 0.08)) !important;
   border-color: #3b82f6 !important;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.35) !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.35) !important;
 }
 .luxury-pay-card.active[data-value="transfer"] .luxury-pay-title { color: #60a5fa !important; }
 
 .luxury-pay-card.active[data-value="cash"] {
   background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(245, 158, 11, 0.08)) !important;
   border-color: #f59e0b !important;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.35) !important;
 }
 .luxury-pay-card.active[data-value="cash"] .luxury-pay-title { color: #fbbf24 !important; }
 
 .luxury-pay-card.active[data-value="card"] {
   background: linear-gradient(145deg, rgba(168, 85, 247, 0.22), rgba(168, 85, 247, 0.08)) !important;
   border-color: #a855f7 !important;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.35) !important;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.35) !important;
 }
 .luxury-pay-card.active[data-value="card"] .luxury-pay-title { color: #c084fc !important; }
 
 .luxury-pay-card.active[data-value="credit"] {
   background: linear-gradient(145deg, rgba(239, 68, 68, 0.22), rgba(239, 68, 68, 0.08)) !important;
   border-color: #ef4444 !important;
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35) !important;
 }
 .luxury-pay-card.active[data-value="credit"] .luxury-pay-title { color: #f87171 !important; }
 
 /* Active check dot */
 .luxury-pay-check {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 7px;
-  height: 7px;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #34d399;
-  box-shadow: 0 0 8px #34d399;
+  box-shadow: 0 0 6px #34d399;
   display: none;
 }
 .luxury-pay-card.active .luxury-pay-check {
@@ -6696,13 +6733,13 @@ input.flatpickr-custom-input {
 
 /* Sleek Payment Hint */
 .buy-grocery-hint {
-  margin-top: 0.55rem;
-  padding: 0.6rem 0.9rem;
-  border-radius: 11px;
-  font-size: 0.8rem;
+  margin-top: 0.45rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.76rem;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   transition: all 0.2s ease;
 }
 
@@ -6710,10 +6747,10 @@ input.flatpickr-custom-input {
 .buy-grocery-select {
   background: rgba(11, 18, 32, 0.85) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 14px !important;
-  padding: 0.75rem 1rem !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 0.9rem !important;
   color: #f1f5f9 !important;
-  font-size: 0.88rem !important;
+  font-size: 0.85rem !important;
   font-weight: 700 !important;
   width: 100% !important;
   cursor: pointer !important;
@@ -6729,16 +6766,16 @@ input.flatpickr-custom-input {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
   color: #ffffff !important;
   border: none !important;
-  border-radius: 14px !important;
-  padding: 0.85rem 1.4rem !important;
-  font-size: 1rem !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1.25rem !important;
+  font-size: 0.95rem !important;
   font-weight: 900 !important;
-  box-shadow: 0 8px 24px -4px rgba(16, 185, 129, 0.55) !important;
+  box-shadow: 0 8px 22px -4px rgba(16, 185, 129, 0.55) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 0.5rem !important;
+  gap: 0.45rem !important;
   transition: all 0.2s ease !important;
   position: relative !important;
   overflow: hidden !important;
@@ -6746,7 +6783,7 @@ input.flatpickr-custom-input {
 
 .buy-grocery-submit-btn:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 12px 30px -4px rgba(16, 185, 129, 0.7) !important;
+  box-shadow: 0 12px 28px -4px rgba(16, 185, 129, 0.7) !important;
   filter: brightness(1.08) !important;
 }
 
@@ -6758,10 +6795,10 @@ input.flatpickr-custom-input {
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   color: #94a3b8 !important;
-  border-radius: 14px !important;
-  padding: 0.85rem 1.25rem !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1.15rem !important;
   font-weight: 700 !important;
-  font-size: 0.92rem !important;
+  font-size: 0.88rem !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
 }
@@ -6770,5 +6807,6 @@ input.flatpickr-custom-input {
   background: rgba(255, 255, 255, 0.1) !important;
   color: #f1f5f9 !important;
 }
+
 
 
