@@ -143,7 +143,7 @@
                 </p>
             </div>
             <div class="radar-strip-action">
-                <span class="radar-btn-pill">محاكاة الرادار ◀</span>
+                <button type="button" class="radar-btn-pill" onclick="event.stopPropagation(); openRunwayRadarModal();" title="فتح رادار التنبؤ ومحاكي السيولة">محاكاة الرادار ◀</button>
             </div>
         </div>
 
@@ -3621,6 +3621,7 @@
                     @endforeach
                 </div>
             </div>
+        </div>
     </div>
 </div>
 
