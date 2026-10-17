@@ -10,6 +10,7 @@ use App\Http\Controllers\DebtController;
 use App\Http\Controllers\EnvelopeController;
 use App\Http\Controllers\GroceryItemController;
 use App\Http\Controllers\PartnerNotificationController;
+use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\SalarySourceController;
 use App\Http\Controllers\SavingGoalController;
 use App\Http\Controllers\SubscriptionController;
@@ -127,6 +128,13 @@ Route::middleware('auth')->group(function () {
     // Instant Partner Notifications (إشعارات فورية بين الحسابين)
     Route::get('/partner/notifications/poll', [PartnerNotificationController::class, 'poll'])->name('partner.notifications.poll');
     Route::post('/partner/notifications/mark-read', [PartnerNotificationController::class, 'markAllRead'])->name('partner.notifications.mark-read');
+
+    // Web Push Notifications (إشعارات الهاتف الفورية)
+    Route::get('/push/public-key', [PushNotificationController::class, 'publicKey'])->name('push.public-key');
+    Route::post('/push/subscribe', [PushNotificationController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushNotificationController::class, 'unsubscribe'])->name('push.unsubscribe');
+    Route::post('/push/test', [PushNotificationController::class, 'sendTestPush'])->name('push.test');
+    Route::post('/push/evening-reminder', [PushNotificationController::class, 'checkEveningSurplusReminder'])->name('push.evening-reminder');
 
     // ==============================================
     // ADMIN ONLY ROUTES (User & Workspace Management)

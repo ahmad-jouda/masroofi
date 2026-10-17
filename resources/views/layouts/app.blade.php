@@ -311,6 +311,17 @@
                                 <span>🕊️ لا توجد إشعارات جديدة حالياً</span>
                             </div>
                         </div>
+                        <!-- Web Push Phone Notifications Action Footer -->
+                        <div class="notif-dropdown-footer">
+                            <button type="button" id="enablePushBtn" class="push-action-btn" onclick="subscribeToPhonePush()">
+                                <span>📲</span>
+                                <span>تفعيل إشعارات الهاتف الفورية</span>
+                            </button>
+                            <button type="button" id="testPushBtn" class="push-test-btn" onclick="sendTestPushToPhone()" style="display: none;">
+                                <span>🔔</span>
+                                <span>إرسال إشعار تجريبي لهاتفي</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 @endauth
@@ -1979,14 +1990,28 @@
                         const newest = data.new_notifications[0];
                         showPartnerToast(newest.title, newest.message, newest.icon || '🔔');
 
-                        // Native Browser Push Notification
+                        // Native Mobile & Desktop Push Notification (Service Worker + Notification API)
                         if ('Notification' in window && Notification.permission === 'granted') {
                             try {
-                                new Notification(newest.title, {
-                                    body: newest.message,
-                                    icon: "{{ asset('icons/icon-192.png') }}",
-                                    badge: "{{ asset('icons/icon-192.png') }}"
-                                });
+                                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                                    navigator.serviceWorker.ready.then(reg => {
+                                        reg.showNotification(newest.title, {
+                                            body: newest.message,
+                                            icon: "{{ asset('icons/icon-192.png') }}",
+                                            badge: "{{ asset('icons/icon-192.png') }}",
+                                            vibrate: [200, 100, 200],
+                                            tag: 'partner-notif-' + (newest.id || Date.now()),
+                                            renotify: true,
+                                            data: { url: '/#tab-dashboard' }
+                                        });
+                                    }).catch(() => {});
+                                } else {
+                                    new Notification(newest.title, {
+                                        body: newest.message,
+                                        icon: "{{ asset('icons/icon-192.png') }}",
+                                        badge: "{{ asset('icons/icon-192.png') }}"
+                                    });
+                                }
                             } catch(e) {}
                         }
 
@@ -2002,19 +2027,190 @@
                     if (data.server_time) {
                         lastCheckedTime = data.server_time;
                     }
+
+                    // Check for evening surplus reminder after 20:00 (8:00 PM)
+                    const currentHour = new Date().getHours();
+                    if (currentHour >= 20) {
+                        checkEveningSurplus();
+                    }
                 } catch(e) {}
             }
 
-            // Request Notification Permission gracefully on first interaction
-            window.requestPartnerPushPermission = function() {
-                if ('Notification' in window && Notification.permission === 'default') {
-                    Notification.requestPermission();
+            // Web Push Helpers
+            function urlBase64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding)
+                    .replace(/\-/g, '+')
+                    .replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                return outputArray;
+            }
+
+            window.subscribeToPhonePush = async function() {
+                const btn = document.getElementById('enablePushBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span>⏳</span> <span>جاري تفعيل الإشعارات...</span>';
+                }
+
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                    alert('هذا المتصفح لا يدعم خاصية Web Push Notifications مباشرة. يرجى تثبيت تطبيق PWA أو استخدام Chrome / Edge / Safari.');
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<span>📲</span> <span>تفعيل إشعارات الهاتف الفورية</span>'; }
+                    return;
+                }
+
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                        alert('تم رفض الإذن. يرجى السماح بالإشعارات من إعدادات موقعك في المتصفح.');
+                        if (btn) { btn.disabled = false; btn.innerHTML = '<span>📲</span> <span>تفعيل إشعارات الهاتف الفورية</span>'; }
+                        return;
+                    }
+
+                    const reg = await navigator.serviceWorker.ready;
+                    const keyRes = await fetch("{{ route('push.public-key') }}");
+                    const keyData = await keyRes.json();
+                    if (!keyData.success || !keyData.public_key) {
+                        throw new Error('Could not fetch public key');
+                    }
+
+                    const convertedKey = urlBase64ToUint8Array(keyData.public_key);
+                    let sub = await reg.pushManager.getSubscription();
+                    if (!sub) {
+                        sub = await reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: convertedKey
+                        });
+                    }
+
+                    const subJson = sub.toJSON();
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                    const saveRes = await fetch("{{ route('push.subscribe') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(subJson)
+                    });
+
+                    const saveData = await saveRes.json();
+                    if (saveData.success) {
+                        updatePushUIStatus(true);
+                        showPartnerToast('🔔 تم تفعيل إشعارات الهاتف!', 'ستصلك الآن تنبيهات الشريك والمقاضي والفائض لحظياً 🚀', '📱');
+                    }
+                } catch(err) {
+                    console.error('Push subscribe error:', err);
+                    alert('حدث خطأ أثناء الاشتراك بالإشعارات: ' + (err.message || 'يرجى المحاولة مجدداً'));
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<span>📲</span> <span>تفعيل إشعارات الهاتف الفورية</span>'; }
                 }
             };
 
+            window.sendTestPushToPhone = async function() {
+                const btn = document.getElementById('testPushBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span>⏳</span> <span>جاري الإرسال...</span>';
+                }
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const res = await fetch("{{ route('push.test') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        showPartnerToast('📲 تم إرسال الإشعار!', data.message, '✨');
+                    } else {
+                        alert(data.message || 'تعذر إرسال الإشعار التجريبي');
+                    }
+                } catch(err) {
+                    alert('تعذر إرسال الإشعار التجريبي');
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<span>🔔</span> <span>إرسال إشعار تجريبي لهاتفي</span>';
+                    }
+                }
+            };
+
+            window.updatePushUIStatus = async function(isSubscribed = null) {
+                const enableBtn = document.getElementById('enablePushBtn');
+                const testBtn = document.getElementById('testPushBtn');
+                const banner = document.getElementById('pushPermissionBanner');
+
+                try {
+                    if (isSubscribed === null) {
+                        if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && Notification.permission === 'granted') {
+                            const reg = await navigator.serviceWorker.ready;
+                            const sub = await reg.pushManager.getSubscription();
+                            isSubscribed = !!sub;
+                        } else {
+                            isSubscribed = false;
+                        }
+                    }
+
+                    if (isSubscribed) {
+                        if (enableBtn) {
+                            enableBtn.classList.add('subscribed');
+                            enableBtn.innerHTML = '<span>✅</span> <span>الإشعارات مفعلة على هذا الهاتف</span>';
+                            enableBtn.onclick = null;
+                        }
+                        if (testBtn) testBtn.style.display = 'inline-flex';
+                        if (banner) banner.style.display = 'none';
+                    } else {
+                        if (enableBtn) {
+                            enableBtn.classList.remove('subscribed');
+                            enableBtn.innerHTML = '<span>📲</span> <span>تفعيل إشعارات الهاتف الفورية</span>';
+                            enableBtn.onclick = subscribeToPhonePush;
+                        }
+                        if (testBtn) testBtn.style.display = 'none';
+                        if (banner && 'Notification' in window && Notification.permission !== 'denied') {
+                            banner.style.display = 'flex';
+                        }
+                    }
+                } catch(e) {}
+            };
+
+            let eveningCheckedToday = false;
+            async function checkEveningSurplus() {
+                if (eveningCheckedToday) return;
+                eveningCheckedToday = true;
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    await fetch("{{ route('push.evening-reminder') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        }
+                    });
+                } catch(e) {}
+            }
+
             // Start Polling
-            setTimeout(pollPartnerUpdates, 3000);
+            setTimeout(pollPartnerUpdates, 2500);
             setInterval(pollPartnerUpdates, 20000);
+
+            // Check push status on load
+            setTimeout(() => {
+                if (typeof updatePushUIStatus === 'function') {
+                    updatePushUIStatus();
+                }
+            }, 1500);
 
             // Re-check on tab focus / visibility change
             document.addEventListener('visibilitychange', function() {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PartnerNotification;
 use App\Models\SavingGoal;
 use App\Models\Transaction;
 use App\Services\CurrencyService;
@@ -66,6 +67,18 @@ class SavingGoalController extends Controller
             'payment_method' => 'transfer',
             'note' => 'إيداع في حصالة: '.$goal->name.' ('.$validated['amount'].' '.$goalCurrency.')',
         ]);
+
+        $user = $request->user();
+        if ($user) {
+            PartnerNotification::notifyPartner(
+                workspaceId: (int) $user->workspace_id,
+                actorId: (int) $user->id,
+                type: 'goal_fed',
+                title: '🎯 إيداع في حصالة تحويش',
+                message: "👤 أودع {$user->name}: {$validated['amount']} {$goalCurrency} في حصالة {$goal->name}",
+                icon: '🎯'
+            );
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'goal' => $goal]);

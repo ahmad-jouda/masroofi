@@ -192,3 +192,70 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+// ==========================================
+// NATIVE WEB PUSH NOTIFICATIONS LISTENER
+// ==========================================
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'مصروفي برو 🔔',
+    body: 'لديك تنبيه مالي جديد في حسابك',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    url: '/',
+    tag: 'masroofi-push-default'
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      data = Object.assign(data, parsed);
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192.png',
+    badge: data.badge || '/icons/icon-192.png',
+    vibrate: [200, 100, 200, 100, 200],
+    tag: data.tag || 'masroofi-push',
+    renotify: true,
+    requireInteraction: false,
+    data: {
+      url: data.url || '/',
+      timestamp: Date.now()
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const targetUrl = (event.notification.data && event.notification.data.url) 
+    ? event.notification.data.url 
+    : '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If a tab is already open with the app, focus it and navigate
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          if ('navigate' in client && targetUrl !== '/') {
+            client.navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

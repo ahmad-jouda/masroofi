@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Debt;
 use App\Models\DebtRecord;
+use App\Models\PartnerNotification;
 use App\Models\Transaction;
 use App\Services\DebtSurplusHarvestService;
 use Illuminate\Http\Request;
@@ -71,6 +72,18 @@ class DebtController extends Controller
 
         $debt->recalculateBalance();
 
+        $user = $request->user();
+        if ($user) {
+            PartnerNotification::notifyPartner(
+                workspaceId: (int) $user->workspace_id,
+                actorId: (int) $user->id,
+                type: 'debt_added',
+                title: '📑 تسجيل مشتريات بالدين',
+                message: "👤 سجّل {$user->name}: دين جديد بقيمة {$validated['amount']} ₪ على حساب {$debt->name}",
+                icon: '📑'
+            );
+        }
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'debt' => $debt->fresh()]);
         }
@@ -109,6 +122,18 @@ class DebtController extends Controller
 
             $debt->recalculateBalance();
         });
+
+        $user = $request->user();
+        if ($user) {
+            PartnerNotification::notifyPartner(
+                workspaceId: (int) $user->workspace_id,
+                actorId: (int) $user->id,
+                type: 'debt_repaid',
+                title: '💳 سداد دفعة دين',
+                message: "👤 قام {$user->name} بسداد دفعة بقيمة {$validated['amount']} ₪ لحساب دين {$debt->name}",
+                icon: '💳'
+            );
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'debt' => $debt->fresh()]);

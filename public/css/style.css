@@ -5817,6 +5817,107 @@ input.flatpickr-custom-input {
   font-size: 0.85rem;
 }
 
+/* Web Push Action Footer & Button */
+.notif-dropdown-footer {
+  padding: 0.75rem 0.85rem;
+  border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.push-action-btn {
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.push-action-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.push-action-btn.subscribed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  cursor: default;
+}
+
+.push-test-btn {
+  width: 100%;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #f8fafc);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.push-test-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Push Permission Header Alert Banner */
+.push-permission-banner {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.2) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 14px;
+  padding: 0.65rem 1rem;
+  margin: 0.65rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.push-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.push-banner-btn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.push-banner-btn:hover {
+  background: #2563eb;
+}
+
 /* Floating Realtime Toast Notification */
 .partner-floating-toast {
   position: fixed;

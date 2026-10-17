@@ -116,6 +116,18 @@
             </div>
         @endif
 
+        <!-- Web Push Enable Reminder Banner (if not enabled) -->
+        <div id="pushPermissionBanner" class="push-permission-banner" style="display: none;">
+            <div class="push-banner-info">
+                <span style="font-size: 1.3rem;">📲</span>
+                <div>
+                    <strong style="display: block; font-size: 0.88rem;">تفعيل إشعارات الهاتف الفورية (Web Push)</strong>
+                    <span style="font-size: 0.78rem; opacity: 0.88;">لتصلك تنبيهات مشتريات الشريك والمقاضي والفائض اليومي لحظياً على شاشة قفل هاتفك</span>
+                </div>
+            </div>
+            <button type="button" class="push-banner-btn" onclick="subscribeToPhonePush()">تفعيل الآن 🔔</button>
+        </div>
+
         <!-- CASHFLOW RUNWAY RADAR ALERT -->
         <div class="runway-radar-strip status-{{ $cashflowRunway['status'] }}" onclick="openRunwayRadarModal()" title="انقر لتفاصيل رادار التنبؤ ومحاكاة السيولة">
             <div class="radar-strip-icon-box">

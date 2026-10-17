@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'webpush' => [
+        'vapid_public_key' => env('VAPID_PUBLIC_KEY', 'BMqew5VNSqT4zM3FihrpaIFTFPe0_cEd5elg5RlTxMuA3d7-6NCFvT3P_0ayY_6OB1_QMinLXKIPz9U7rHtpTPc'),
+        'vapid_private_key' => env('VAPID_PRIVATE_KEY', 'PhoY8vVPg9YNRoRPC_VsSPbNeFipdEpgW5V9T-d37P0'),
+        'vapid_subject' => env('VAPID_SUBJECT', env('APP_URL', 'mailto:admin@masroofi.com')),
+    ],
+
 ];

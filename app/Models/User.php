@@ -99,4 +99,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Debt::class);
     }
+
+    /**
+     * Web Push subscriptions for this user's devices.
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
 }
