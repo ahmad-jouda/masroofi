@@ -438,7 +438,162 @@
 </section>
 
 <!-- ============================================== -->
-<!-- TAB 2: BUDGET & ENVELOPES -->
+<!-- TAB: SHARED SMART GROCERY LIST (قائمة المقاضي والمشتريات المشتركة) -->
+<!-- ============================================== -->
+<section class="tab-pane {{ ($activeTab ?? '') === 'tab-grocery' ? 'active' : '' }}" id="tab-grocery">
+    
+    <!-- Hero Header & Quick Counters -->
+    <div class="grocery-hero-header">
+        <div class="grocery-hero-title-group">
+            <div class="grocery-hero-icon-wrap">🛒</div>
+            <div>
+                <h2 class="grocery-hero-title">
+                    <span>قائمة المقاضي المشتركة</span>
+                    <span style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.15rem 0.55rem; border-radius: 20px; font-weight: 700;">تشارك عائلي 👥</span>
+                </h2>
+                <p class="grocery-hero-desc">
+                    اكتبا ما ينقص البيت معاً، واشطبا ما تم شراؤه داخل السوبرماركت بضغطة زر حتى بدون إنترنت!
+                </p>
+            </div>
+        </div>
+
+        <div class="grocery-stats-bar">
+            <div class="grocery-stat-pill stat-pending" title="أصناف بحاجة للشراء">
+                <span>⏳ ناقص:</span>
+                <strong id="groceryStatPending">{{ $pendingGroceryCount ?? 0 }}</strong>
+            </div>
+            <div class="grocery-stat-pill stat-bought" title="أصناف تم شراؤها">
+                <span>✔️ تم شطب:</span>
+                <strong id="groceryStatBought">{{ $boughtGroceryCount ?? 0 }}</strong>
+            </div>
+            <div class="grocery-stat-pill stat-total" title="إجمالي التكلفة التقديرية للأصناف المطلوبة">
+                <span>💰 تقديري:</span>
+                <strong id="groceryStatEstimated">{{ number_format($estimatedGroceryTotal ?? 0, 1) }}</strong>
+                <span>{{ $settings->currency ?? 'ILS' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick 1-Click Convert Bar (Visible when there are bought items not yet converted to expense) -->
+    <div class="grocery-convert-action-card" id="groceryConvertBanner" style="{{ ($boughtGroceryCount ?? 0) > 0 ? '' : 'display: none;' }}">
+        <div class="convert-card-info">
+            <span class="convert-card-icon">🛍️</span>
+            <div>
+                <div class="convert-card-title">
+                    <span>تم شطب <strong id="convertBannerCount">{{ $boughtGroceryCount ?? 0 }}</strong> أغراض مشتراة!</span>
+                </div>
+                <div class="convert-card-subtitle">
+                    حوّل هذه المشتريات الآن بضغطة زر واحدة إلى مصروف مباشر في ظرف البقالة.
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-convert-grocery" onclick="openConvertGroceryModal()">
+            <span>💳</span>
+            <span>تحويل إلى مصروف في ظرف البقالة</span>
+        </button>
+    </div>
+
+    <!-- Quick Add Form -->
+    <div class="grocery-add-card">
+        <form id="addGroceryForm" onsubmit="handleGroceryFormSubmit(event)" class="grocery-add-form">
+            @csrf
+            <div class="grocery-input-row">
+                <input type="text" name="name" id="groceryInputName" class="styled-input grocery-input-name" placeholder="ماذا ينقص البيت؟ (مثال: حليب، جبنة، بيض، معجون أسنان...)" required autocomplete="off">
+                
+                <select name="category" id="grocerySelectCategory" class="styled-input grocery-select-cat">
+                    @foreach($groceryCategories as $catKey => $catMeta)
+                        <option value="{{ $catKey }}">{{ $catMeta['icon'] }} {{ $catMeta['name'] }}</option>
+                    @endforeach
+                </select>
+
+                <input type="number" step="0.5" name="estimated_price" id="groceryInputPrice" class="styled-input grocery-input-price" placeholder="سعر تقريبي (اختياري)">
+
+                <button type="submit" class="grocery-add-btn" id="grocerySubmitBtn">
+                    <span>➕</span>
+                    <span>إضافة للقائمة</span>
+                </button>
+            </div>
+
+            <!-- Fast Suggestion Chips -->
+            <div class="grocery-suggestions-wrap">
+                <span class="grocery-suggestions-label">أغراض شائعة سريعة:</span>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('حليب طازج 🥛', 'dairy', 7)">حليب 🥛</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خبز طازج 🥖', 'groceries', 4)">خبز 🥖</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('كرتونة بيض 🥚', 'dairy', 18)">بيض 🥚</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('جبنة بيضاء 🧀', 'dairy', 12)">جبنة 🧀</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خضار مشكلة 🥗', 'produce', 10)">خضار 🥗</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('منظفات ومحارم 🧼', 'cleaning', 25)">منظفات 🧼</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('دجاج طازج 🍗', 'meat', 35)">دجاج 🍗</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('زيت طعام / زيتون 🫒', 'groceries', 30)">زيت 🫒</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('شاي وسكر ☕', 'groceries', 15)">شاي وسكر ☕</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('أدوية وعناية 💊', 'pharmacy', 20)">صيدلية 💊</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Category Filter Bar -->
+    <div class="grocery-filters-bar">
+        <button type="button" class="cat-filter-btn active" data-filter="all" onclick="filterGroceryCategory('all', this)">
+            <span>🌟</span> <span>الكل</span>
+        </button>
+        @foreach($groceryCategories as $catKey => $catMeta)
+            <button type="button" class="cat-filter-btn" data-filter="{{ $catKey }}" onclick="filterGroceryCategory('{{ $catKey }}', this)">
+                <span>{{ $catMeta['icon'] }}</span> <span>{{ $catMeta['name'] }}</span>
+            </button>
+        @endforeach
+    </div>
+
+    <!-- Interactive Grocery Checklist Container -->
+    <div class="grocery-list-container" id="groceryItemsList">
+        @forelse($groceryItems as $item)
+            <div class="grocery-item-card {{ $item->is_bought ? 'is-bought' : '' }}" 
+                 id="groceryItemRow_{{ $item->id }}" 
+                 data-id="{{ $item->id }}" 
+                 data-category="{{ $item->category }}" 
+                 data-bought="{{ $item->is_bought ? '1' : '0' }}"
+                 data-price="{{ $item->estimated_price ?? 0 }}">
+                
+                <div class="grocery-item-main" onclick="toggleGroceryItem({{ $item->id }})">
+                    <div class="grocery-checkbox-wrap">
+                        <div class="grocery-checkbox-custom">✓</div>
+                    </div>
+                    <span class="grocery-cat-badge">{{ $item->category_meta['icon'] ?? '🛒' }}</span>
+                    <div class="grocery-text-col">
+                        <span class="grocery-item-name">{{ $item->name }}</span>
+                        <div class="grocery-item-meta">
+                            <span>👤 أضافه: <strong class="actor-tag">{{ $item->user?->name ?? 'عضو' }}</strong></span>
+                            @if($item->is_bought && $item->buyer)
+                                <span>• ✔️ شطبه: <strong class="buyer-tag">{{ $item->buyer->name }}</strong></span>
+                            @endif
+                            <span>• {{ $item->created_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grocery-item-end">
+                    @if($item->estimated_price && $item->estimated_price > 0)
+                        <span class="grocery-item-price">~{{ number_format($item->estimated_price, 1) }} ₪</span>
+                    @endif
+                    <button type="button" class="grocery-del-btn" title="حذف الغرض" onclick="deleteGroceryItem({{ $item->id }}, event)">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+        @empty
+            <div class="grocery-empty-state" id="groceryEmptyState">
+                <span class="grocery-empty-icon">🛒✨</span>
+                <div class="grocery-empty-title">قائمة المقاضي مكتملة ولا ينقص البيت شيء!</div>
+                <div class="grocery-empty-desc">
+                    اكتب أي غرض ناقص (حليب، خضار، منظفات...) وسيظهر فوراً على هاتف شريكتك!
+                </div>
+            </div>
+        @endforelse
+    </div>
+
+</section>
+
+<!-- ============================================== -->
+<!-- TAB: BUDGET & ENVELOPES -->
 <!-- ============================================== -->
 <section class="tab-pane {{ ($activeTab ?? '') === 'tab-envelopes' ? 'active' : '' }}" id="tab-envelopes">
     
@@ -3081,6 +3236,96 @@
     </div>
 </div>
 
+<!-- 15. Convert Grocery to Expense Modal (تحويل المقاضي إلى مصروف في ظرف البقالة) -->
+<div class="modal-backdrop hidden" id="convertGroceryModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                    <span>🛒</span>
+                    <span>تحويل المقاضي إلى مصروف في ظرف البقالة</span>
+                </h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">
+                    تسجيل فاتورة السوبرماركت كمصروف فوري وشطب الأصناف تلقائياً مع إشعار الشريك
+                </p>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('convertGroceryModal')">&times;</button>
+        </div>
+
+        <form id="convertGroceryForm" onsubmit="handleConvertGrocerySubmit(event)" style="padding: 1.25rem 1.5rem;">
+            @csrf
+            
+            <!-- Items Summary Preview -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 14px; padding: 0.9rem 1.1rem; margin-bottom: 1.15rem;">
+                <div style="font-size: 0.82rem; color: #34d399; font-weight: 800; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📦 الأصناف المشطوبة للشراء (<span id="modalConvertItemsCount">0</span> أصناف):</span>
+                    <span style="font-size: 0.76rem; color: var(--text-muted);">تقديري: <strong id="modalConvertEstimatedSum">0</strong> ₪</span>
+                </div>
+                <div id="modalConvertItemsPills" style="display: flex; gap: 0.4rem; flex-wrap: wrap; max-height: 85px; overflow-y: auto;">
+                    <!-- Filled dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Total Amount Input -->
+            <div class="form-group">
+                <label>مبلغ الفاتورة الإجمالي الفعلي (بالشيكل): *</label>
+                <div style="position: relative;">
+                    <input type="number" step="0.5" name="amount" id="modalConvertAmount" class="styled-input" style="font-size: 1.25rem; font-weight: 800; color: #10b981; padding-left: 2.5rem;" required>
+                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 800; color: var(--text-secondary);">₪</span>
+                </div>
+                <small style="color: var(--text-secondary); font-size: 0.75rem;">تم احتساب المبلغ التقديري تلقائياً، ويمكنك تعديله لمطابقة وصل السوبرماركت الفعلي بدقة.</small>
+            </div>
+
+            <!-- Target Envelope -->
+            <div class="form-group">
+                <label>الظرف المالي المستهدف: *</label>
+                <select name="envelope_id" id="modalConvertEnvelope" class="styled-input" required>
+                    @php
+                        $groceryEnvelope = $envelopes->first(fn($e) => str_contains($e->name, 'بقالة'));
+                        $defaultEnvId = $groceryEnvelope?->id ?? ($envelopes->first()?->id ?? 1);
+                    @endphp
+                    @foreach($envelopes as $env)
+                        <option value="{{ $env->id }}" {{ $env->id == $defaultEnvId ? 'selected' : '' }}>
+                            {{ $env->icon ?? '✉️' }} {{ $env->name }} (رصيد متبقي: {{ number_format($env->remaining_budget, 1) }} ₪)
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Payment Method & Date -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+                <div class="form-group">
+                    <label>طريقة الدفع: *</label>
+                    <select name="payment_method" id="modalConvertPaymentMethod" class="styled-input" required>
+                        <option value="card">💳 بطاقة مصرفية</option>
+                        <option value="cash" selected>💵 كاش / نقدي</option>
+                        <option value="transfer">📲 تحويل / محفظة إلكترونية</option>
+                        <option value="credit">📑 ذمم / شكك</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>تاريخ المعاملة: *</label>
+                    <input type="date" name="date" id="modalConvertDate" class="styled-input" value="{{ date('Y-m-d') }}" required>
+                </div>
+            </div>
+
+            <!-- Note / Description -->
+            <div class="form-group">
+                <label>البيان / ملاحظة (اختياري):</label>
+                <input type="text" name="note" id="modalConvertNote" class="styled-input" placeholder="مثال: مقاضي البيت والسوبرماركت">
+            </div>
+
+            <div class="modal-actions" style="margin-top: 1.25rem;">
+                <button type="button" class="btn-subtle" onclick="closeModal('convertGroceryModal')">إلغاء</button>
+                <button type="submit" class="btn-primary" id="modalConvertSubmitBtn" style="background: linear-gradient(135deg, #10b981, #059669); font-weight: 800;">
+                    <span>💳</span>
+                    <span>تأكيد وتسجيل المصروف</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -3088,7 +3333,7 @@
     // ==========================================
     // PERSISTENT TAB SYSTEM & ZERO-FLICKER SYNC
     // ==========================================
-    const VALID_TABS = ['tab-dashboard', 'tab-envelopes', 'tab-goals', 'tab-leaks', 'tab-ledger', 'tab-debts'];
+    const VALID_TABS = ['tab-dashboard', 'tab-grocery', 'tab-envelopes', 'tab-goals', 'tab-leaks', 'tab-ledger', 'tab-debts'];
 
     function getActiveTabId() {
         const activePane = document.querySelector('.tab-pane.active');
@@ -4337,6 +4582,530 @@
             });
         }
         return true;
+    };
+
+    // =========================================================================
+    // SHARED SMART GROCERY LIST & SUPERMARKET SYNERGY
+    // =========================================================================
+
+    // Quick suggestion fill
+    window.quickFillGrocery = function(name, category, price) {
+        const inputName = document.getElementById('groceryInputName');
+        const selectCat = document.getElementById('grocerySelectCategory');
+        const inputPrice = document.getElementById('groceryInputPrice');
+
+        if (inputName) inputName.value = name;
+        if (selectCat && category) selectCat.value = category;
+        if (inputPrice && price) inputPrice.value = price;
+        if (inputName) inputName.focus();
+    };
+
+    // Category filter
+    window.filterGroceryCategory = function(cat, btn) {
+        document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const rows = document.querySelectorAll('.grocery-item-card');
+        rows.forEach(row => {
+            const rowCat = row.getAttribute('data-category');
+            if (cat === 'all' || rowCat === cat) {
+                row.style.display = 'flex';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    };
+
+    // Recalculate grocery counters & convert banner in DOM
+    window.updateGroceryDOMStats = function() {
+        const rows = Array.from(document.querySelectorAll('.grocery-item-card'));
+        const pendingRows = rows.filter(r => r.getAttribute('data-bought') === '0');
+        const boughtRows = rows.filter(r => r.getAttribute('data-bought') === '1');
+
+        let estimatedSum = 0;
+        pendingRows.forEach(r => {
+            estimatedSum += parseFloat(r.getAttribute('data-price') || 0);
+        });
+
+        const statPending = document.getElementById('groceryStatPending');
+        const statBought = document.getElementById('groceryStatBought');
+        const statEstimated = document.getElementById('groceryStatEstimated');
+        const banner = document.getElementById('groceryConvertBanner');
+        const bannerCount = document.getElementById('convertBannerCount');
+        const navBadge = document.getElementById('groceryNavBadge');
+
+        if (statPending) statPending.textContent = pendingRows.length;
+        if (statBought) statBought.textContent = boughtRows.length;
+        if (statEstimated) statEstimated.textContent = estimatedSum.toFixed(1);
+        if (bannerCount) bannerCount.textContent = boughtRows.length;
+
+        if (banner) {
+            banner.style.display = boughtRows.length > 0 ? 'flex' : 'none';
+        }
+
+        if (navBadge) {
+            if (pendingRows.length > 0) {
+                navBadge.textContent = pendingRows.length;
+                navBadge.style.display = 'inline-flex';
+            } else {
+                navBadge.style.display = 'none';
+            }
+        }
+    };
+
+    // Add item (Online + Offline)
+    window.handleGroceryFormSubmit = async function(e) {
+        e.preventDefault();
+        const inputName = document.getElementById('groceryInputName');
+        const selectCat = document.getElementById('grocerySelectCategory');
+        const inputPrice = document.getElementById('groceryInputPrice');
+        const submitBtn = document.getElementById('grocerySubmitBtn');
+
+        const name = inputName ? inputName.value.trim() : '';
+        const category = selectCat ? selectCat.value : 'groceries';
+        const price = inputPrice && inputPrice.value ? parseFloat(inputPrice.value) : null;
+
+        if (!name) return;
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        const payload = {
+            name: name,
+            category: category,
+            estimated_price: price
+        };
+
+        // If Offline
+        if (!navigator.onLine) {
+            if (window.offlineEngine && typeof window.offlineEngine.addOfflineGroceryItem === 'function') {
+                const tempId = await window.offlineEngine.addOfflineGroceryItem(payload);
+                renderNewGroceryItemInDOM({
+                    id: tempId,
+                    name: name,
+                    category: category,
+                    estimated_price: price,
+                    is_bought: false,
+                    is_offline: true,
+                    created_at_human: 'الآن (محلياً 📴)'
+                });
+                if (window.showPartnerToast) {
+                    showPartnerToast('📴 حُفظ بدون إنترنت', `أضيف "${name}" وسيُزامن فور عودة الشبكة`, '⚡');
+                }
+            }
+            if (inputName) inputName.value = '';
+            if (inputPrice) inputPrice.value = '';
+            if (submitBtn) submitBtn.disabled = false;
+            updateGroceryDOMStats();
+            return;
+        }
+
+        // If Online
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch("{{ route('grocery-items.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.success && data.item) {
+                renderNewGroceryItemInDOM(data.item);
+                if (inputName) inputName.value = '';
+                if (inputPrice) inputPrice.value = '';
+                if (window.showPartnerToast) {
+                    showPartnerToast('🛒 تمت الإضافة', `أضيف "${name}" لقائمة المقاضي`, '✅');
+                }
+                updateGroceryDOMStats();
+            } else {
+                alert(data.message || 'حدث خطأ أثناء الإضافة');
+            }
+        } catch(err) {
+            console.error('Error adding grocery item:', err);
+            // Fallback to offline store
+            if (window.offlineEngine && typeof window.offlineEngine.addOfflineGroceryItem === 'function') {
+                const tempId = await window.offlineEngine.addOfflineGroceryItem(payload);
+                renderNewGroceryItemInDOM({
+                    id: tempId,
+                    name: name,
+                    category: category,
+                    estimated_price: price,
+                    is_bought: false,
+                    is_offline: true,
+                    created_at_human: 'الآن (محلياً 📴)'
+                });
+                updateGroceryDOMStats();
+            }
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    };
+
+    function renderNewGroceryItemInDOM(item) {
+        const list = document.getElementById('groceryItemsList');
+        const emptyState = document.getElementById('groceryEmptyState');
+        if (emptyState) emptyState.remove();
+
+        const catIcons = {
+            groceries: '🛒',
+            produce: '🥦',
+            dairy: '🥛',
+            cleaning: '🧼',
+            pharmacy: '💊',
+            meat: '🥩',
+            other: '📦'
+        };
+        const icon = catIcons[item.category] || '🛒';
+
+        const card = document.createElement('div');
+        card.className = `grocery-item-card ${item.is_bought ? 'is-bought' : ''}`;
+        card.id = `groceryItemRow_${item.id}`;
+        card.setAttribute('data-id', item.id);
+        card.setAttribute('data-category', item.category || 'groceries');
+        card.setAttribute('data-bought', item.is_bought ? '1' : '0');
+        card.setAttribute('data-price', item.estimated_price || 0);
+
+        card.innerHTML = `
+            <div class="grocery-item-main" onclick="toggleGroceryItem(${item.id})">
+                <div class="grocery-checkbox-wrap">
+                    <div class="grocery-checkbox-custom">✓</div>
+                </div>
+                <span class="grocery-cat-badge">${icon}</span>
+                <div class="grocery-text-col">
+                    <span class="grocery-item-name">${item.name}</span>
+                    <div class="grocery-item-meta">
+                        <span>👤 أضافه: <strong class="actor-tag">${item.user ? item.user.name : 'أنا'}</strong></span>
+                        <span>• ${item.created_at_human || 'الآن'}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="grocery-item-end">
+                ${item.estimated_price ? `<span class="grocery-item-price">~${parseFloat(item.estimated_price).toFixed(1)} ₪</span>` : ''}
+                <button type="button" class="grocery-del-btn" title="حذف الغرض" onclick="deleteGroceryItem(${item.id}, event)">
+                    🗑️
+                </button>
+            </div>
+        `;
+
+        if (list.firstChild) {
+            list.insertBefore(card, list.firstChild);
+        } else {
+            list.appendChild(card);
+        }
+    }
+
+    // Toggle bought status
+    window.toggleGroceryItem = async function(id) {
+        const row = document.getElementById(`groceryItemRow_${id}`);
+        if (!row) return;
+
+        const isCurrentlyBought = row.getAttribute('data-bought') === '1';
+        const newBought = !isCurrentlyBought;
+
+        row.setAttribute('data-bought', newBought ? '1' : '0');
+        if (newBought) {
+            row.classList.add('is-bought');
+        } else {
+            row.classList.remove('is-bought');
+        }
+
+        updateGroceryDOMStats();
+
+        // If offline
+        if (!navigator.onLine || String(id).startsWith('temp_')) {
+            if (window.offlineEngine && typeof window.offlineEngine.toggleOfflineGroceryItem === 'function') {
+                window.offlineEngine.toggleOfflineGroceryItem(id, newBought);
+            }
+            return;
+        }
+
+        // If online
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch(`/grocery-items/${id}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (!data.success) {
+                // Revert on error
+                row.setAttribute('data-bought', isCurrentlyBought ? '1' : '0');
+                if (isCurrentlyBought) row.classList.add('is-bought');
+                else row.classList.remove('is-bought');
+                updateGroceryDOMStats();
+            }
+        } catch(err) {
+            // Queue offline on failure
+            if (window.offlineEngine && typeof window.offlineEngine.toggleOfflineGroceryItem === 'function') {
+                window.offlineEngine.toggleOfflineGroceryItem(id, newBought);
+            }
+        }
+    };
+
+    // Delete item
+    window.deleteGroceryItem = async function(id, event) {
+        if (event) event.stopPropagation();
+        const row = document.getElementById(`groceryItemRow_${id}`);
+        if (!row) return;
+
+        if (!confirm('هل أنت متأكد من حذف هذا الغرض من قائمة المقاضي؟')) {
+            return;
+        }
+
+        row.remove();
+        updateGroceryDOMStats();
+
+        // If offline
+        if (!navigator.onLine || String(id).startsWith('temp_')) {
+            if (window.offlineEngine && typeof window.offlineEngine.deleteOfflineGroceryItem === 'function') {
+                window.offlineEngine.deleteOfflineGroceryItem(id);
+            }
+            return;
+        }
+
+        // If online
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            await fetch(`/grocery-items/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                }
+            });
+        } catch(err) {
+            if (window.offlineEngine && typeof window.offlineEngine.deleteOfflineGroceryItem === 'function') {
+                window.offlineEngine.deleteOfflineGroceryItem(id);
+            }
+        }
+    };
+
+    // Open Convert to Expense Modal
+    window.openConvertGroceryModal = function() {
+        const rows = Array.from(document.querySelectorAll('.grocery-item-card'));
+        const boughtRows = rows.filter(r => r.getAttribute('data-bought') === '1');
+
+        if (boughtRows.length === 0) {
+            alert('يرجى شطب (تحديد) الأغراض التي تم شراؤها أولاً للتحويل إلى مصروف.');
+            return;
+        }
+
+        let estimatedSum = 0;
+        let names = [];
+        const pillsContainer = document.getElementById('modalConvertItemsPills');
+        if (pillsContainer) pillsContainer.innerHTML = '';
+
+        boughtRows.forEach(r => {
+            const nameEl = r.querySelector('.grocery-item-name');
+            const name = nameEl ? nameEl.textContent.trim() : 'غرض';
+            const price = parseFloat(r.getAttribute('data-price') || 0);
+            estimatedSum += price;
+            names.push(name);
+
+            if (pillsContainer) {
+                const pill = document.createElement('span');
+                pill.style.cssText = 'background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 0.2rem 0.55rem; border-radius: 8px; font-size: 0.76rem; color: #f1f5f9; display: inline-flex; align-items: center; gap: 0.3rem;';
+                pill.innerHTML = `<span>✓</span> <span>${name}</span> ${price > 0 ? `<strong style="color: #34d399;">(~${price}₪)</strong>` : ''}`;
+                pillsContainer.appendChild(pill);
+            }
+        });
+
+        const countEl = document.getElementById('modalConvertItemsCount');
+        const sumEl = document.getElementById('modalConvertEstimatedSum');
+        const amountInput = document.getElementById('modalConvertAmount');
+        const noteInput = document.getElementById('modalConvertNote');
+
+        if (countEl) countEl.textContent = boughtRows.length;
+        if (sumEl) sumEl.textContent = estimatedSum.toFixed(1);
+        if (amountInput) amountInput.value = estimatedSum > 0 ? estimatedSum.toFixed(1) : '';
+
+        const shortNames = names.slice(0, 4).join('، ') + (names.length > 4 ? ' وأخرى' : '');
+        if (noteInput) noteInput.value = `مقاضي البيت (${boughtRows.length} أصناف: ${shortNames})`;
+
+        openModal('convertGroceryModal');
+    };
+
+    // Handle Convert to Expense Submit
+    window.handleConvertGrocerySubmit = async function(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('modalConvertSubmitBtn');
+        const amountInput = document.getElementById('modalConvertAmount');
+        const envelopeSelect = document.getElementById('modalConvertEnvelope');
+        const paymentMethodSelect = document.getElementById('modalConvertPaymentMethod');
+        const dateInput = document.getElementById('modalConvertDate');
+        const noteInput = document.getElementById('modalConvertNote');
+
+        const amount = amountInput ? parseFloat(amountInput.value) : 0;
+        if (!amount || amount <= 0) {
+            alert('يرجى إدخال مبلغ الفاتورة الإجمالي.');
+            return;
+        }
+
+        const boughtRows = Array.from(document.querySelectorAll('.grocery-item-card'))
+            .filter(r => r.getAttribute('data-bought') === '1');
+        
+        const itemIds = boughtRows.map(r => parseInt(r.getAttribute('data-id'))).filter(id => !isNaN(id) && id > 0);
+
+        const payload = {
+            amount: amount,
+            envelope_id: envelopeSelect ? envelopeSelect.value : null,
+            payment_method: paymentMethodSelect ? paymentMethodSelect.value : 'cash',
+            date: dateInput ? dateInput.value : new Date().toISOString().split('T')[0],
+            note: noteInput ? noteInput.value : 'مقاضي البيت',
+            item_ids: itemIds
+        };
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        // If Offline
+        if (!navigator.onLine) {
+            if (window.offlineEngine && typeof window.offlineEngine.saveOfflineTransaction === 'function') {
+                await window.offlineEngine.saveOfflineTransaction({
+                    type: 'expense',
+                    amount: payload.amount,
+                    envelope_id: payload.envelope_id,
+                    payment_method: payload.payment_method,
+                    date: payload.date,
+                    note: payload.note
+                });
+
+                // Archive converted items locally
+                if (window.offlineEngine.archiveConvertedGroceryItems) {
+                    window.offlineEngine.archiveConvertedGroceryItems(itemIds);
+                }
+
+                boughtRows.forEach(r => r.remove());
+                closeModal('convertGroceryModal');
+                updateGroceryDOMStats();
+
+                if (window.showPartnerToast) {
+                    showPartnerToast('📴 تم التسجيل بدون إنترنت', `سُجل مصروف بقيمة ${amount} ₪ وسيزامن فور الاتصال`, '🛍️');
+                }
+            }
+            if (submitBtn) submitBtn.disabled = false;
+            return;
+        }
+
+        // If Online
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch("{{ route('grocery-items.convert-expense') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                // Confetti celebration 🎉
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 80,
+                        origin: { y: 0.5 }
+                    });
+                }
+
+                boughtRows.forEach(r => r.remove());
+                closeModal('convertGroceryModal');
+                updateGroceryDOMStats();
+
+                if (window.showPartnerToast) {
+                    showPartnerToast('💳 تم تحويل المقاضي لمصروف', data.message || 'تم تسجيل المصروف في ظرف البقالة بنجاح', '🎉');
+                }
+            } else {
+                alert(data.message || 'تعذر تحويل القائمة لمصروف');
+            }
+        } catch(err) {
+            console.error('Error converting grocery to expense:', err);
+            alert('حدث خطأ أثناء الاتصال بالخادم.');
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    };
+
+    // Background refresh
+    window.refreshGroceryListFromServer = async function() {
+        if (!navigator.onLine) return;
+        try {
+            const res = await fetch("{{ route('grocery-items.index') }}", {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.success || !data.items) return;
+
+            const list = document.getElementById('groceryItemsList');
+            if (!list) return;
+
+            if (data.items.length === 0) {
+                list.innerHTML = `
+                    <div class="grocery-empty-state" id="groceryEmptyState">
+                        <span class="grocery-empty-icon">🛒✨</span>
+                        <div class="grocery-empty-title">قائمة المقاضي مكتملة ولا ينقص البيت شيء!</div>
+                        <div class="grocery-empty-desc">
+                            اكتب أي غرض ناقص (حليب، خضار، منظفات...) وسيظهر فوراً على هاتف شريكتك!
+                        </div>
+                    </div>
+                `;
+            } else {
+                const catIcons = {
+                    groceries: '🛒',
+                    produce: '🥦',
+                    dairy: '🥛',
+                    cleaning: '🧼',
+                    pharmacy: '💊',
+                    meat: '🥩',
+                    other: '📦'
+                };
+
+                list.innerHTML = data.items.map(item => `
+                    <div class="grocery-item-card ${item.is_bought ? 'is-bought' : ''}" 
+                         id="groceryItemRow_${item.id}" 
+                         data-id="${item.id}" 
+                         data-category="${item.category || 'groceries'}" 
+                         data-bought="${item.is_bought ? '1' : '0'}"
+                         data-price="${item.estimated_price || 0}">
+                        
+                        <div class="grocery-item-main" onclick="toggleGroceryItem(${item.id})">
+                            <div class="grocery-checkbox-wrap">
+                                <div class="grocery-checkbox-custom">✓</div>
+                            </div>
+                            <span class="grocery-cat-badge">${catIcons[item.category] || '🛒'}</span>
+                            <div class="grocery-text-col">
+                                <span class="grocery-item-name">${item.name}</span>
+                                <div class="grocery-item-meta">
+                                    <span>👤 أضافه: <strong class="actor-tag">${item.user ? item.user.name : 'عضو'}</strong></span>
+                                    ${(item.is_bought && item.buyer) ? `<span>• ✔️ شطبه: <strong class="buyer-tag">${item.buyer.name}</strong></span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grocery-item-end">
+                            ${item.estimated_price ? `<span class="grocery-item-price">~${parseFloat(item.estimated_price).toFixed(1)} ₪</span>` : ''}
+                            <button type="button" class="grocery-del-btn" title="حذف الغرض" onclick="deleteGroceryItem(${item.id}, event)">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateGroceryDOMStats();
+        } catch(e) {}
     };
 </script>
 @endpush

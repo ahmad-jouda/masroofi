@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Debt;
 use App\Models\Envelope;
+use App\Models\GroceryItem;
 use App\Models\SalarySource;
 use App\Models\SavingGoal;
 use App\Models\Subscription;
@@ -45,6 +46,17 @@ class DashboardController extends Controller
         $wishlist = Wishlist::latest()->get();
         $subscriptions = Subscription::all();
         $salarySources = SalarySource::orderBy('day_of_month')->get();
+
+        // 0. Shared Smart Grocery List items
+        $groceryItems = GroceryItem::with(['user', 'buyer'])
+            ->active()
+            ->orderBy('is_bought')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $pendingGroceryCount = $groceryItems->where('is_bought', false)->count();
+        $boughtGroceryCount = $groceryItems->where('is_bought', true)->count();
+        $estimatedGroceryTotal = (float) $groceryItems->where('is_bought', false)->sum('estimated_price');
+        $groceryCategories = GroceryItem::CATEGORIES;
 
         // 1. Auto-Cycle Calculations with Cycle Browsing Support
         $today = Carbon::today();
@@ -423,7 +435,12 @@ class DashboardController extends Controller
             'debts',
             'totalDebtsOwed',
             'activeDebtsCount',
-            'completedHarvestDebts'
+            'completedHarvestDebts',
+            'groceryItems',
+            'pendingGroceryCount',
+            'boughtGroceryCount',
+            'estimatedGroceryTotal',
+            'groceryCategories'
         ));
     }
 }

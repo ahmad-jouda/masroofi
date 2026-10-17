@@ -1282,10 +1282,124 @@ const MasroofiOffline = {
                             this.syncTransactions(false);
                         }
                     });
+                    this.syncGroceryItems();
                 }
             }, 20000);
         });
+    },
+
+    // ==========================================
+    // SHARED GROCERY LIST OFFLINE SYNC METHODS
+    // ==========================================
+    GROCERY_STORAGE_KEY: 'masroofi_pending_grocery',
+
+    getPendingGrocery() {
+        try {
+            const raw = localStorage.getItem(this.GROCERY_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : { new_items: [], toggles: [], deletes: [] };
+        } catch (e) {
+            return { new_items: [], toggles: [], deletes: [] };
+        }
+    },
+
+    savePendingGrocery(data) {
+        try {
+            localStorage.setItem(this.GROCERY_STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {}
+    },
+
+    async addOfflineGroceryItem(item) {
+        const data = this.getPendingGrocery();
+        const tempId = 'temp_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        data.new_items.push({
+            temp_id: tempId,
+            name: item.name,
+            category: item.category || 'groceries',
+            estimated_price: item.estimated_price || null,
+            is_bought: !!item.is_bought
+        });
+        this.savePendingGrocery(data);
+        return tempId;
+    },
+
+    toggleOfflineGroceryItem(id, isBought) {
+        const data = this.getPendingGrocery();
+        const offlineItem = data.new_items.find(i => i.temp_id === id);
+        if (offlineItem) {
+            offlineItem.is_bought = isBought;
+        } else {
+            data.toggles = data.toggles.filter(t => t.id !== id);
+            data.toggles.push({ id: id, is_bought: isBought });
+        }
+        this.savePendingGrocery(data);
+    },
+
+    deleteOfflineGroceryItem(id) {
+        const data = this.getPendingGrocery();
+        data.new_items = data.new_items.filter(i => i.temp_id !== id);
+        data.toggles = data.toggles.filter(t => t.id !== id);
+        if (!String(id).startsWith('temp_')) {
+            if (!data.deletes.includes(id)) {
+                data.deletes.push(id);
+            }
+        }
+        this.savePendingGrocery(data);
+    },
+
+    archiveConvertedGroceryItems(itemIds) {
+        const data = this.getPendingGrocery();
+        itemIds.forEach(id => {
+            if (String(id).startsWith('temp_')) {
+                data.new_items = data.new_items.filter(i => i.temp_id !== id);
+            } else {
+                data.toggles = data.toggles.filter(t => t.id !== id);
+                data.toggles.push({ id: id, is_bought: true });
+            }
+        });
+        this.savePendingGrocery(data);
+    },
+
+    async syncGroceryItems() {
+        if (!navigator.onLine) return;
+        const data = this.getPendingGrocery();
+        const hasWork = (data.new_items.length > 0 || data.toggles.length > 0 || data.deletes.length > 0);
+        if (!hasWork) return;
+
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch('/grocery-items/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                const resData = await res.json();
+                if (resData.success) {
+                    this.savePendingGrocery({ new_items: [], toggles: [], deletes: [] });
+                    if (typeof window.refreshGroceryListFromServer === 'function') {
+                        window.refreshGroceryListFromServer();
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Grocery sync error:', e);
+        }
     }
+};
+
+// Expose unified offline engine interface
+window.offlineEngine = {
+    addOfflineGroceryItem: (item) => MasroofiOffline.addOfflineGroceryItem(item),
+    toggleOfflineGroceryItem: (id, isBought) => MasroofiOffline.toggleOfflineGroceryItem(id, isBought),
+    deleteOfflineGroceryItem: (id) => MasroofiOffline.deleteOfflineGroceryItem(id),
+    archiveConvertedGroceryItems: (itemIds) => MasroofiOffline.archiveConvertedGroceryItems(itemIds),
+    saveOfflineTransaction: (tx) => MasroofiOffline.addTransaction(tx),
+    syncGroceryItems: () => MasroofiOffline.syncGroceryItems()
 };
 
 // Global helper for opening offline modal

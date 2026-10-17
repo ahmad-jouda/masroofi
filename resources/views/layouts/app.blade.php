@@ -155,7 +155,7 @@
     <script>
         (function() {
             try {
-                const validTabs = ['tab-dashboard', 'tab-envelopes', 'tab-goals', 'tab-leaks', 'tab-ledger', 'tab-debts'];
+                const validTabs = ['tab-dashboard', 'tab-grocery', 'tab-envelopes', 'tab-goals', 'tab-leaks', 'tab-ledger', 'tab-debts'];
                 const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
                 const params = new URLSearchParams(window.location.search);
                 const queryTab = params.get('tab');
@@ -293,6 +293,28 @@
                     <span>تثبيت</span>
                 </button>
 
+                <!-- Instant Partner Notifications Bell (التشارك العائلي والإشعارات الفورية) -->
+                @auth
+                <div class="partner-notifications-wrap" id="partnerNotificationsWrap">
+                    <button type="button" id="partnerNotifBell" class="nav-action-icon-btn notif-bell-btn" title="إشعارات الشريك والمشتريات المشتركة" onclick="togglePartnerNotifDropdown(event)">
+                        <span class="bell-icon">🔔</span>
+                        <span id="partnerNotifBadge" class="notif-unread-badge" style="display: none;">0</span>
+                    </button>
+                    <!-- Dropdown Panel -->
+                    <div class="partner-notif-dropdown" id="partnerNotifDropdown">
+                        <div class="notif-dropdown-header">
+                            <h4><span>🔔</span> <span>إشعارات الشريك</span></h4>
+                            <button type="button" class="notif-mark-read-btn" onclick="markAllPartnerNotifsRead()">تحديد كمقروء ✔️</button>
+                        </div>
+                        <div class="notif-list-container" id="partnerNotifList">
+                            <div class="notif-empty-state">
+                                <span>🕊️ لا توجد إشعارات جديدة حالياً</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endauth
+
                 <!-- Theme Toggle Button -->
                 <button type="button" id="toggleThemeBtn" class="nav-action-icon-btn" title="تبديل المظهر (ليلي / نهاري)" onclick="toggleAppTheme()">
                     <span id="themeIcon">{{ ($settings->theme ?? 'dark') == 'dark' ? '🌙' : '☀️' }}</span>
@@ -426,6 +448,14 @@
                 <span class="tab-icon">📊</span>
                 <span class="tab-label-full">الرئيسية واليومي</span>
                 <span class="tab-label-short">الرئيسية</span>
+            </button>
+            <button class="tab-btn {{ ($activeTab ?? '') === 'tab-grocery' ? 'active' : '' }}" data-tab="tab-grocery" id="tabBtnGrocery">
+                <span class="tab-icon">🛒</span>
+                <span class="tab-label-full">قائمة المقاضي المشتركة</span>
+                <span class="tab-label-short">المقاضي</span>
+                <span id="groceryNavBadge" class="tab-alert-badge" style="{{ (isset($pendingGroceryCount) && $pendingGroceryCount > 0) ? '' : 'display: none;' }}" title="أغراض بيت ناقصة بحاجة للشراء">
+                    {{ $pendingGroceryCount ?? 0 }}
+                </span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-envelopes' ? 'active' : '' }}" data-tab="tab-envelopes" id="tabBtnEnvelopes">
                 <span class="tab-icon">✉️</span>
@@ -1755,6 +1785,246 @@
             }
         }
     </script>
+
+    <!-- Floating Realtime Partner Notification Toast -->
+    <div id="partnerFloatingToast" class="partner-floating-toast" onclick="dismissPartnerToast()">
+        <span class="toast-partner-icon" id="partnerToastIcon">🔔</span>
+        <div class="toast-partner-body">
+            <span class="toast-partner-title" id="partnerToastTitle">إشعار من الشريك</span>
+            <span class="toast-partner-text" id="partnerToastMessage">محتوى الإشعار</span>
+        </div>
+    </div>
+
+    <!-- Realtime Partner Synergy & Notifications Engine -->
+    @auth
+    <script>
+        (function() {
+            let lastCheckedTime = new Date().toISOString();
+            let toastTimeout = null;
+
+            // 🎵 Pleasant Luxury Web Audio Synthesizer Chime (Offline-friendly, no external audio file needed)
+            function playPartnerChime() {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    const ctx = new AudioContext();
+                    if (ctx.state === 'suspended') {
+                        ctx.resume();
+                    }
+
+                    const now = ctx.currentTime;
+                    // Tone 1: C5 (523.25 Hz)
+                    const osc1 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(523.25, now);
+                    gain1.gain.setValueAtTime(0.12, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc1.connect(gain1);
+                    gain1.connect(ctx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.35);
+
+                    // Tone 2: E5 (659.25 Hz) slightly delayed
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(659.25, now + 0.12);
+                    gain2.gain.setValueAtTime(0.15, now + 0.12);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.start(now + 0.12);
+                    osc2.stop(now + 0.55);
+                } catch(e) {}
+            }
+
+            // 🍞 Show Animated Floating Toast
+            window.showPartnerToast = function(title, message, icon = '🔔') {
+                const toast = document.getElementById('partnerFloatingToast');
+                const tIcon = document.getElementById('partnerToastIcon');
+                const tTitle = document.getElementById('partnerToastTitle');
+                const tMsg = document.getElementById('partnerToastMessage');
+                if (!toast) return;
+
+                if (tIcon) tIcon.textContent = icon;
+                if (tTitle) tTitle.textContent = title;
+                if (tMsg) tMsg.textContent = message;
+
+                toast.classList.add('active');
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('active');
+                }, 6000);
+            };
+
+            window.dismissPartnerToast = function() {
+                const toast = document.getElementById('partnerFloatingToast');
+                if (toast) toast.classList.remove('active');
+                if (toastTimeout) clearTimeout(toastTimeout);
+            };
+
+            // 🔔 Toggle Dropdown Menu
+            window.togglePartnerNotifDropdown = function(e) {
+                if (e) e.stopPropagation();
+                const dropdown = document.getElementById('partnerNotifDropdown');
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                }
+            };
+
+            // Dismiss dropdown on outside click
+            document.addEventListener('click', function(e) {
+                const wrap = document.getElementById('partnerNotificationsWrap');
+                const dropdown = document.getElementById('partnerNotifDropdown');
+                if (dropdown && dropdown.classList.contains('show')) {
+                    if (wrap && !wrap.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+
+            // ✔️ Mark All Read
+            window.markAllPartnerNotifsRead = async function() {
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const res = await fetch("{{ route('partner.notifications.mark-read') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const badge = document.getElementById('partnerNotifBadge');
+                        const bell = document.getElementById('partnerNotifBell');
+                        if (badge) {
+                            badge.style.display = 'none';
+                            badge.textContent = '0';
+                        }
+                        if (bell) bell.classList.remove('has-unread');
+                        document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+                    }
+                } catch(e) {}
+            };
+
+            // 🔄 Poll Server for Partner Updates
+            async function pollPartnerUpdates() {
+                if (!navigator.onLine) return;
+                try {
+                    const url = `{{ route('partner.notifications.poll') }}?last_checked=${encodeURIComponent(lastCheckedTime)}`;
+                    const res = await fetch(url, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (!data.success) return;
+
+                    // Update Badge
+                    const badge = document.getElementById('partnerNotifBadge');
+                    const bell = document.getElementById('partnerNotifBell');
+                    if (badge) {
+                        if (data.unread_count > 0) {
+                            badge.textContent = data.unread_count > 9 ? '+9' : data.unread_count;
+                            badge.style.display = 'flex';
+                            if (bell) bell.classList.add('has-unread');
+                        } else {
+                            badge.style.display = 'none';
+                            badge.textContent = '0';
+                            if (bell) bell.classList.remove('has-unread');
+                        }
+                    }
+
+                    // Update Grocery Tab Badge
+                    const groceryBadge = document.getElementById('groceryNavBadge');
+                    if (groceryBadge) {
+                        if (data.pending_grocery_count > 0) {
+                            groceryBadge.textContent = data.pending_grocery_count;
+                            groceryBadge.style.display = 'inline-flex';
+                        } else {
+                            groceryBadge.style.display = 'none';
+                        }
+                    }
+
+                    // Render Notifications in Dropdown
+                    const listContainer = document.getElementById('partnerNotifList');
+                    if (listContainer && data.notifications) {
+                        if (data.notifications.length === 0) {
+                            listContainer.innerHTML = `
+                                <div class="notif-empty-state">
+                                    <span>🕊️ لا توجد إشعارات جديدة حالياً</span>
+                                </div>
+                            `;
+                        } else {
+                            listContainer.innerHTML = data.notifications.map(n => `
+                                <div class="notif-item ${(!n.is_read && !n.is_mine) ? 'unread' : ''}">
+                                    <span class="notif-item-icon">${n.icon || '🔔'}</span>
+                                    <div class="notif-item-content">
+                                        <div class="notif-item-title">
+                                            <span>${n.title}</span>
+                                            <span class="notif-item-time">${n.created_at_human}</span>
+                                        </div>
+                                        <div class="notif-item-msg">${n.message}</div>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+
+                    // Handle Newly Arrived Notifications
+                    if (data.new_notifications && data.new_notifications.length > 0) {
+                        playPartnerChime();
+                        const newest = data.new_notifications[0];
+                        showPartnerToast(newest.title, newest.message, newest.icon || '🔔');
+
+                        // Native Browser Push Notification
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            try {
+                                new Notification(newest.title, {
+                                    body: newest.message,
+                                    icon: "{{ asset('icons/icon-192.png') }}",
+                                    badge: "{{ asset('icons/icon-192.png') }}"
+                                });
+                            } catch(e) {}
+                        }
+
+                        // Auto-refresh grocery list if user is currently viewing grocery tab
+                        if (typeof window.refreshGroceryListFromServer === 'function') {
+                            const activeTab = document.querySelector('.tab-pane.active');
+                            if (activeTab && activeTab.id === 'tab-grocery') {
+                                window.refreshGroceryListFromServer();
+                            }
+                        }
+                    }
+
+                    if (data.server_time) {
+                        lastCheckedTime = data.server_time;
+                    }
+                } catch(e) {}
+            }
+
+            // Request Notification Permission gracefully on first interaction
+            window.requestPartnerPushPermission = function() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            };
+
+            // Start Polling
+            setTimeout(pollPartnerUpdates, 3000);
+            setInterval(pollPartnerUpdates, 20000);
+
+            // Re-check on tab focus / visibility change
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    pollPartnerUpdates();
+                }
+            });
+        })();
+    </script>
+    @endauth
 
     @stack('scripts')
 </body>

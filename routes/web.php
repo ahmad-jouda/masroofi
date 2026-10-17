@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DebtController;
 use App\Http\Controllers\EnvelopeController;
+use App\Http\Controllers\GroceryItemController;
+use App\Http\Controllers\PartnerNotificationController;
 use App\Http\Controllers\SalarySourceController;
 use App\Http\Controllers\SavingGoalController;
 use App\Http\Controllers\SubscriptionController;
@@ -111,6 +113,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/workspace/members', [WorkspaceMemberController::class, 'store'])->name('workspace.members.store');
     Route::delete('/workspace/members/{user}', [WorkspaceMemberController::class, 'destroy'])->name('workspace.members.destroy');
     Route::post('/workspace/members/{user}/reset-pin', [WorkspaceMemberController::class, 'resetPin'])->name('workspace.members.resetPin');
+
+    // Shared Smart Grocery List (قائمة المقاضي والمشتريات المشتركة)
+    Route::get('/grocery-items', [GroceryItemController::class, 'index'])->name('grocery-items.index');
+    Route::post('/grocery-items', [GroceryItemController::class, 'store'])->name('grocery-items.store');
+    Route::post('/grocery-items/{groceryItem}/toggle', [GroceryItemController::class, 'toggle'])->name('grocery-items.toggle');
+    Route::delete('/grocery-items/{groceryItem}', [GroceryItemController::class, 'destroy'])->name('grocery-items.destroy');
+    Route::post('/grocery-items/convert-expense', [GroceryItemController::class, 'convertToExpense'])->name('grocery-items.convert-expense');
+    Route::post('/grocery-items/sync', [GroceryItemController::class, 'syncOffline'])->name('grocery-items.sync');
+
+    // Instant Partner Notifications (إشعارات فورية بين الحسابين)
+    Route::get('/partner/notifications/poll', [PartnerNotificationController::class, 'poll'])->name('partner.notifications.poll');
+    Route::post('/partner/notifications/mark-read', [PartnerNotificationController::class, 'markAllRead'])->name('partner.notifications.mark-read');
 
     // ==============================================
     // ADMIN ONLY ROUTES (User & Workspace Management)

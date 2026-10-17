@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DebtRecord;
 use App\Models\Envelope;
+use App\Models\PartnerNotification;
 use App\Models\SalarySource;
 use App\Models\SavingGoal;
 use App\Models\Transaction;
@@ -50,6 +51,30 @@ class TransactionController extends Controller
             if ($adjustment) {
                 $adjustmentMessage = DailySurplusAdjustmentService::formatAdjustmentSummary($adjustment);
             }
+        }
+
+        // Notify partner about newly recorded transaction
+        $user = $request->user();
+        if ($user) {
+            $userName = $user->name;
+            $typeArabic = match ($tx->type) {
+                'expense' => 'مصروف',
+                'income' => 'دخل إضافي',
+                'savings' => 'توفير للهدف',
+                default => 'معاملة',
+            };
+            $envelopePart = $tx->envelope?->name ? ' في ظرف '.$tx->envelope->name : '';
+            $amountFormatted = number_format((float) $tx->amount, 2);
+            $icon = $tx->type === 'income' ? '💵' : ($tx->type === 'savings' ? '🎯' : '💳');
+
+            PartnerNotification::notifyPartner(
+                workspaceId: (int) $user->workspace_id,
+                actorId: (int) $user->id,
+                type: 'transaction_added',
+                title: "💳 تسجيل {$typeArabic} جديد",
+                message: "👤 سجّل {$userName}: {$typeArabic}{$envelopePart} بقيمة {$amountFormatted} ₪",
+                icon: $icon
+            );
         }
 
         if ($request->wantsJson()) {
@@ -259,6 +284,21 @@ class TransactionController extends Controller
         }
 
         $totalSynced = count($created) + count($updated);
+
+        // Notify partner if any transactions were synced
+        $user = $request->user();
+        if ($user && count($created) > 0) {
+            $userName = $user->name;
+            $count = count($created);
+            PartnerNotification::notifyPartner(
+                workspaceId: (int) $user->workspace_id,
+                actorId: (int) $user->id,
+                type: 'transactions_synced',
+                title: '🔄 مزامنة معاملات أوفلاين',
+                message: "👤 زامن {$userName} {$count} معاملات جديدة بعد استعادة الاتصال",
+                icon: '⚡'
+            );
+        }
 
         return response()->json([
             'success' => true,
