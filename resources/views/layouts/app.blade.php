@@ -209,11 +209,18 @@
                     style.textContent = `
                         .tab-pane { display: none !important; }
                         #${targetTab} { display: block !important; }
-                        .tab-btn { background: transparent !important; color: var(--text-muted) !important; border-color: transparent !important; }
+                        .tab-btn { background: transparent !important; color: #64748b !important; border-color: transparent !important; }
                         .tab-btn[data-tab="${targetTab}"] {
-                            background: var(--card-bg) !important;
-                            color: var(--primary) !important;
-                            border-color: rgba(16, 185, 129, 0.3) !important;
+                            background: rgba(16, 185, 129, 0.12) !important;
+                            color: #10b981 !important;
+                        }
+                        .tab-btn[data-tab="${targetTab}"] .nav-tab-svg {
+                            stroke: #10b981 !important;
+                            transform: translateY(-2px) scale(1.14) !important;
+                        }
+                        .tab-btn[data-tab="${targetTab}"] .tab-label-short {
+                            color: #10b981 !important;
+                            font-weight: 800 !important;
                         }
                     `;
                     document.head.appendChild(style);
@@ -494,45 +501,88 @@
         @else
         <nav class="main-tabs-bar" id="mainTabsNav">
             <button class="tab-btn {{ ($activeTab ?? 'tab-dashboard') === 'tab-dashboard' ? 'active' : '' }}" data-tab="tab-dashboard" id="tabBtnDashboard">
-                <span class="tab-icon">📊</span>
+                <span class="tab-icon">
+                    <svg class="nav-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+                        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+                        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+                    </svg>
+                </span>
                 <span class="tab-label-full">الرئيسية واليومي</span>
                 <span class="tab-label-short">الرئيسية</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-grocery' ? 'active' : '' }}" data-tab="tab-grocery" id="tabBtnGrocery">
-                <span class="tab-icon">🛒</span>
+                <span class="tab-icon">
+                    <svg class="nav-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="8" cy="21" r="1.5"></circle>
+                        <circle cx="19" cy="21" r="1.5"></circle>
+                        <path d="M2.5 2.5h3l2.4 11.5a2 2 0 0 0 2 1.6h9.6a2 2 0 0 0 2-1.6l1.5-7.5H6.2"></path>
+                    </svg>
+                    <span id="groceryNavBadge" class="tab-alert-badge badge-grocery" style="{{ (isset($pendingGroceryCount) && $pendingGroceryCount > 0) ? '' : 'display: none;' }}" title="أغراض بيت ناقصة بحاجة للشراء">
+                        {{ $pendingGroceryCount ?? 0 }}
+                    </span>
+                </span>
                 <span class="tab-label-full">قائمة المقاضي المشتركة</span>
                 <span class="tab-label-short">المقاضي</span>
-                <span id="groceryNavBadge" class="tab-alert-badge" style="{{ (isset($pendingGroceryCount) && $pendingGroceryCount > 0) ? '' : 'display: none;' }}" title="أغراض بيت ناقصة بحاجة للشراء">
-                    {{ $pendingGroceryCount ?? 0 }}
-                </span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-envelopes' ? 'active' : '' }}" data-tab="tab-envelopes" id="tabBtnEnvelopes">
-                <span class="tab-icon">✉️</span>
+                <span class="tab-icon">
+                    <svg class="nav-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2.5" y="4.5" width="19" height="15" rx="2.5"></rect>
+                        <path d="m21.5 6.5-9.5 6.5-9.5-6.5"></path>
+                    </svg>
+                </span>
                 <span class="tab-label-full">الميزانية والأظرف</span>
                 <span class="tab-label-short">الأظرف</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-goals' ? 'active' : '' }}" data-tab="tab-goals" id="tabBtnGoals">
-                <span class="tab-icon">🎯</span>
+                <span class="tab-icon">
+                    <svg class="nav-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9.5"></circle>
+                        <circle cx="12" cy="12" r="5.5"></circle>
+                        <circle cx="12" cy="12" r="1.8" fill="currentColor"></circle>
+                    </svg>
+                </span>
                 <span class="tab-label-full">صناديق التحويش</span>
                 <span class="tab-label-short">التحويش</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-leaks' ? 'active' : '' }}" data-tab="tab-leaks" id="tabBtnLeaks">
-                <span class="tab-icon">⚡</span>
+                <span class="tab-icon">
+                    <svg class="nav-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2 3.5 13.5h7L9.5 22 20.5 10.5h-7L13 2Z"></path>
+                    </svg>
+                </span>
                 <span class="tab-label-full">كاشف الهدر والتسريبات</span>
                 <span class="tab-label-short">الهدر</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-ledger' ? 'active' : '' }}" data-tab="tab-ledger" id="tabBtnLedger">
-                <span class="tab-icon">📝</span>
+                <span class="tab-icon">
+                    <svg class="nav-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 2v20l2.5-1.5L9 22l2.5-1.5L14 22l2.5-1.5L19 22l2.5-1.5V2l-2.5 1.5L16.5 2 14 3.5 11.5 2 9 3.5 6.5 2 4 3.5Z"></path>
+                        <path d="M8 8h8"></path>
+                        <path d="M8 12h8"></path>
+                        <path d="M8 16h5"></path>
+                    </svg>
+                </span>
                 <span class="tab-label-full">سجل المعاملات</span>
                 <span class="tab-label-short">السجل</span>
             </button>
             <button class="tab-btn {{ ($activeTab ?? '') === 'tab-debts' ? 'active' : '' }}" data-tab="tab-debts" id="tabBtnDebts">
-                <span class="tab-icon">📑</span>
+                <span class="tab-icon">
+                    <svg class="nav-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                        <path d="M6 6h10"></path>
+                        <path d="M6 10h7"></path>
+                        <circle cx="15.5" cy="15.5" r="3"></circle>
+                        <path d="m14.5 15.5 1 1 2-2"></path>
+                    </svg>
+                    @if(isset($totalDebtsOwed) && $totalDebtsOwed > 0)
+                        <span class="tab-alert-badge badge-debts" title="إجمالي الديون المستحقة للسداد">{{ number_format($totalDebtsOwed, 0) }}</span>
+                    @endif
+                </span>
                 <span class="tab-label-full">دفتر الديون (شكك/سلف)</span>
                 <span class="tab-label-short">الديون</span>
-                @if(isset($totalDebtsOwed) && $totalDebtsOwed > 0)
-                    <span class="tab-alert-badge" title="إجمالي الديون المستحقة للسداد">{{ number_format($totalDebtsOwed, 0) }}</span>
-                @endif
             </button>
         </nav>
         @endif
