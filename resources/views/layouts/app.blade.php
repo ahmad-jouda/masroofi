@@ -33,9 +33,47 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ar.js"></script>
     
-    <!-- Chart.js & Confetti CDN -->
+    <!-- Chart.js & Confetti (Local with CDN fallback) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+    <script src="{{ asset('js/canvas-confetti.min.js') }}"></script>
+    <script>
+        if (typeof confetti !== 'function') {
+            const s = document.createElement('script');
+            s.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js";
+            document.head.appendChild(s);
+        }
+        (function() {
+            function patchConfetti() {
+                if (typeof window.confetti === 'function' && !window.confetti._patched) {
+                    const original = window.confetti;
+                    const wrapped = function(opts) {
+                        const finalOpts = Object.assign({ zIndex: 9999999 }, opts || {});
+                        if (!finalOpts.zIndex || finalOpts.zIndex < 9999999) {
+                            finalOpts.zIndex = 9999999;
+                        }
+                        const res = original(finalOpts);
+                        setTimeout(function() {
+                            document.querySelectorAll('canvas').forEach(function(c) {
+                                if (c.style.position === 'fixed' || c.style.pointerEvents === 'none') {
+                                    c.style.zIndex = '9999999';
+                                }
+                            });
+                        }, 0);
+                        return res;
+                    };
+                    Object.assign(wrapped, original);
+                    wrapped._patched = true;
+                    window.confetti = wrapped;
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', patchConfetti);
+            } else {
+                patchConfetti();
+            }
+            window.addEventListener('load', patchConfetti);
+        })();
+    </script>
 
     <!-- Global Modal Helpers & Backdrop Dismissal -->
     <script>

@@ -3579,7 +3579,7 @@
                     </div>
                 </div>
                 <div class="streak-detail-action">
-                    <button type="button" class="btn-fireworks-celebrate" onclick="triggerCelebrationConfetti()">
+                    <button type="button" class="btn-fireworks-celebrate" onclick="triggerCelebrationConfetti(event)">
                         <span>🎉 احتفل بإنجازاتك</span>
                     </button>
                 </div>
@@ -5967,41 +5967,77 @@
         @endif
     };
 
-    window.triggerCelebrationConfetti = function() {
+    window.triggerCelebrationConfetti = function(event) {
+        // Ensure any canvas created by canvas-confetti sits visibly above modals (z-index: 9999999)
+        const fixConfettiCanvasZIndex = () => {
+            document.querySelectorAll('canvas').forEach(c => {
+                if (c.style.position === 'fixed' || c.style.pointerEvents === 'none') {
+                    c.style.zIndex = '9999999';
+                }
+            });
+        };
+
         if (typeof confetti === 'function') {
-            const count = 200;
-            const defaults = { origin: { y: 0.65 } };
+            const count = 220;
+            const defaults = { origin: { y: 0.65 }, zIndex: 9999999 };
 
             function fire(particleRatio, opts) {
                 confetti(Object.assign({}, defaults, opts, {
-                    particleCount: Math.floor(count * particleRatio)
+                    particleCount: Math.floor(count * particleRatio),
+                    zIndex: 9999999
                 }));
             }
 
+            // Dual cannons: Left & Right bursts
+            confetti({
+                particleCount: 65,
+                angle: 60,
+                spread: 60,
+                origin: { x: 0.05, y: 0.7 },
+                zIndex: 9999999,
+                colors: ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#ffd700']
+            });
+            confetti({
+                particleCount: 65,
+                angle: 120,
+                spread: 60,
+                origin: { x: 0.95, y: 0.7 },
+                zIndex: 9999999,
+                colors: ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#ffd700']
+            });
+
+            // Center multi-stage explosion
             fire(0.25, {
-                spread: 30,
+                spread: 35,
                 startVelocity: 55,
                 colors: ['#f59e0b', '#fbbf24', '#ef4444', '#10b981', '#3b82f6']
             });
             fire(0.2, {
-                spread: 60,
+                spread: 65,
             });
             fire(0.35, {
-                spread: 100,
+                spread: 110,
                 decay: 0.91,
-                scalar: 0.8
+                scalar: 0.9
             });
             fire(0.1, {
-                spread: 120,
+                spread: 130,
                 startVelocity: 25,
                 decay: 0.92,
                 colors: ['#ffd700', '#ffae00', '#ffffff', '#38bdf8']
             });
             fire(0.1, {
-                spread: 120,
+                spread: 140,
                 startVelocity: 45,
             });
+
+            fixConfettiCanvasZIndex();
+            setTimeout(fixConfettiCanvasZIndex, 50);
+            setTimeout(fixConfettiCanvasZIndex, 250);
         }
+
+        // Also launch rich DOM floating celebration emojis (trophies, fire, medals, coins, sparkles)
+        spawnDOMCelebrationParticles(event);
 
         // Play pleasant celebration audio fanfare using Web Audio API
         try {
@@ -6023,6 +6059,68 @@
                 osc.stop(audioCtx.currentTime + idx * 0.09 + 0.4);
             });
         } catch(e) {}
+    };
+
+    window.spawnDOMCelebrationParticles = function(event) {
+        const emojis = ['🎉', '🏆', '🔥', '⭐', '✨', '💰', '🏅', '👏', '🥳', '🪙', '🌟'];
+        const container = document.createElement('div');
+        container.className = 'dom-celebration-particles-layer';
+        container.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99999999;overflow:hidden;';
+        document.body.appendChild(container);
+
+        let originX = window.innerWidth / 2;
+        let originY = window.innerHeight * 0.55;
+
+        if (event && event.clientX && event.clientY) {
+            originX = event.clientX;
+            originY = event.clientY;
+        } else if (event && event.target && typeof event.target.getBoundingClientRect === 'function') {
+            const rect = event.target.getBoundingClientRect();
+            originX = rect.left + rect.width / 2;
+            originY = rect.top + rect.height / 2;
+        }
+
+        const particleCount = 26;
+        for (let i = 0; i < particleCount; i++) {
+            const span = document.createElement('span');
+            span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5;
+            const distance = 90 + Math.random() * 260;
+            const destX = originX + Math.cos(angle) * distance;
+            const destY = originY + Math.sin(angle) * distance - (60 + Math.random() * 110);
+            const rotate = (Math.random() - 0.5) * 720;
+            const scale = 0.9 + Math.random() * 1.3;
+            const duration = 1200 + Math.random() * 700;
+
+            span.style.cssText = `
+                position: fixed;
+                left: ${originX}px;
+                top: ${originY}px;
+                font-size: ${24 + Math.random() * 16}px;
+                user-select: none;
+                pointer-events: none;
+                transform: translate(-50%, -50%) scale(0.2);
+                opacity: 1;
+                transition: transform ${duration}ms cubic-bezier(0.12, 0.8, 0.32, 1.2), opacity ${duration}ms ease-out;
+                filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+            `;
+
+            container.appendChild(span);
+
+            requestAnimationFrame(() => {
+                span.style.transform = `translate(${destX - originX}px, ${destY - originY}px) rotate(${rotate}deg) scale(${scale})`;
+                setTimeout(() => {
+                    span.style.opacity = '0';
+                    span.style.transform += ' translateY(30px)';
+                }, duration * 0.55);
+            });
+        }
+
+        setTimeout(() => {
+            if (container.parentNode) {
+                container.parentNode.removeChild(container);
+            }
+        }, 2500);
     };
 
     // ==========================================
