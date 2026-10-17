@@ -3326,87 +3326,111 @@
 
 <!-- MODAL: SINGLE GROCERY ITEM 1-CLICK PURCHASE & INSTANT EXPENSE CONVERSION -->
 <div class="modal-backdrop hidden" id="buySingleGroceryItemModal">
-    <div class="modal-card">
-        <div class="modal-header">
+    <div class="modal-card buy-grocery-modal-card">
+        
+        <!-- Header -->
+        <div class="buy-grocery-modal-header">
             <div>
-                <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                <div class="buy-grocery-badge-tag">
                     <span>🛒</span>
-                    <span>تسجيل شراء: <span id="modalBuyItemNameTitle" style="color: #34d399;"></span></span>
+                    <span>شراء من السوبرماركت</span>
+                </div>
+                <h3 class="buy-grocery-modal-title">
+                    <span>تسجيل شراء:</span>
+                    <span class="item-highlight" id="modalBuyItemNameTitle"></span>
                 </h3>
-                <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">
-                    أدخل سعر الغرض الفعلي ونوع الشراء لترحيلها فوراً كمصروف وإشعار الشريك
-                </p>
             </div>
-            <button class="modal-close-btn" onclick="closeModal('buySingleGroceryItemModal')">&times;</button>
+            <button type="button" class="buy-grocery-close-btn" onclick="closeModal('buySingleGroceryItemModal')" title="إغلاق">&times;</button>
         </div>
 
-        <form id="buySingleGroceryItemForm" onsubmit="handleSingleBuySubmit(event)" style="padding: 1.25rem 1.5rem;">
+        <form id="buySingleGroceryItemForm" onsubmit="handleSingleBuySubmit(event)" style="padding: 1.25rem 1.45rem;">
             @csrf
             <input type="hidden" id="modalBuyItemId">
 
-            <!-- Item Badge Summary -->
-            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 1.15rem; display: flex; align-items: center; gap: 0.75rem;">
-                <span id="modalBuyItemIcon" style="font-size: 1.6rem; line-height: 1;">🛒</span>
-                <div style="flex: 1;">
-                    <div id="modalBuyItemName" style="font-size: 1.05rem; font-weight: 800; color: #f8fafc;"></div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
-                        <span>التصنيف: <strong id="modalBuyItemCategory" style="color: #38bdf8;"></strong></span>
+            <!-- Hero Item Preview Banner -->
+            <div class="buy-grocery-hero-banner">
+                <div class="buy-grocery-icon-avatar" id="modalBuyItemIcon">🛒</div>
+                <div class="buy-grocery-item-details">
+                    <div class="buy-grocery-item-name-big" id="modalBuyItemName"></div>
+                    <div style="display: flex; align-items: center; gap: 0.45rem;">
+                        <span class="buy-grocery-item-cat-tag">
+                            <span>🏷️</span>
+                            <span id="modalBuyItemCategory"></span>
+                        </span>
                     </div>
                 </div>
-                <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 0.3rem 0.65rem; border-radius: 8px; font-size: 0.75rem; font-weight: 800; color: #34d399;">
-                    جاهز للترحيل ⚡
+                <div class="buy-grocery-status-pill">
+                    <span>⚡ ترحيل فوري</span>
                 </div>
             </div>
 
-            <!-- Price Paid Input -->
-            <div class="form-group">
-                <label style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
-                    سعر الغرض الفعلي (بالشيكل ₪): *
+            <!-- Luxury Hero Price Input Card -->
+            <div class="buy-grocery-price-box">
+                <div class="buy-grocery-price-label">
+                    <span>💵</span>
+                    <span>سعر الغرض الفعلي المدفوع بالسوبرماركت</span>
+                </div>
+                <div class="buy-grocery-price-input-row">
+                    <span class="buy-grocery-currency-symbol">₪</span>
+                    <input type="number" step="any" min="0.1" name="amount" id="modalBuyAmount" class="buy-grocery-amount-input" placeholder="0.0" required autofocus autocomplete="off">
+                </div>
+
+                <!-- Fast-Add Price Shortcut Chips -->
+                <div class="buy-grocery-quick-chips">
+                    <button type="button" class="buy-chip-btn" onclick="addQuickPrice(1)">+1 ₪</button>
+                    <button type="button" class="buy-chip-btn" onclick="addQuickPrice(5)">+5 ₪</button>
+                    <button type="button" class="buy-chip-btn" onclick="addQuickPrice(10)">+10 ₪</button>
+                    <button type="button" class="buy-chip-btn" onclick="addQuickPrice(20)">+20 ₪</button>
+                    <button type="button" class="buy-chip-btn" onclick="addQuickPrice(50)">+50 ₪</button>
+                    <button type="button" class="buy-chip-btn clear-chip" onclick="clearQuickPrice()">مسح ✕</button>
+                </div>
+            </div>
+
+            <!-- Payment Method Cards -->
+            <div style="margin-top: 1.15rem;">
+                <label style="font-weight: 800; font-size: 0.88rem; color: #f1f5f9; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span>نوع الشراء وطريقة الدفع:</span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">اختر المصدر الفعلي</span>
                 </label>
-                <div style="position: relative;">
-                    <input type="number" step="any" min="0.1" name="amount" id="modalBuyAmount" class="styled-input" style="font-size: 1.45rem; font-weight: 900; color: #10b981; padding-left: 2.8rem; text-align: left; direction: ltr;" placeholder="0.00" required autofocus autocomplete="off">
-                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 900; font-size: 1.25rem; color: #10b981;">₪</span>
-                </div>
-                <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 0.3rem;">
-                    سجل قديش كلف الغرض بالضبط ليتم خصمه من الظرف وإشعار الشريك به.
-                </small>
-            </div>
-
-            <!-- Payment Method Pills -->
-            <div class="form-group" style="margin-top: 1rem;">
-                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 0.4rem; display: block;">نوع الشراء / طريقة الدفع: *</label>
                 <input type="hidden" name="payment_method" id="modalBuyPaymentMethod" value="cash">
-                <div class="payment-method-pills" id="modalBuyPaymentPills">
-                    <button type="button" class="pay-pill" data-value="transfer" onclick="setBuyPaymentMethod('transfer')">
-                        <span class="pay-pill-icon">📱</span>
-                        <span class="pay-pill-label">تطبيق</span>
-                        <span class="pay-pill-sub">رصيد حي</span>
-                    </button>
-                    <button type="button" class="pay-pill active" data-value="cash" onclick="setBuyPaymentMethod('cash')">
-                        <span class="pay-pill-icon">💵</span>
-                        <span class="pay-pill-label">كاش</span>
-                        <span class="pay-pill-sub">نقدي</span>
-                    </button>
-                    <button type="button" class="pay-pill" data-value="card" onclick="setBuyPaymentMethod('card')">
-                        <span class="pay-pill-icon">💳</span>
-                        <span class="pay-pill-label">بطاقة</span>
-                        <span class="pay-pill-sub">صراف</span>
-                    </button>
-                    <button type="button" class="pay-pill" data-value="credit" onclick="setBuyPaymentMethod('credit')">
-                        <span class="pay-pill-icon">📑</span>
-                        <span class="pay-pill-label">ذمم</span>
-                        <span class="pay-pill-sub">شكك</span>
-                    </button>
+                <div class="buy-grocery-pay-grid" id="modalBuyPaymentPills">
+                    <div class="luxury-pay-card" data-value="transfer" onclick="setBuyPaymentMethod('transfer')">
+                        <span class="luxury-pay-check"></span>
+                        <span class="luxury-pay-icon">📱</span>
+                        <span class="luxury-pay-title">تطبيق</span>
+                        <span class="luxury-pay-sub">رصيد حي</span>
+                    </div>
+                    <div class="luxury-pay-card active" data-value="cash" onclick="setBuyPaymentMethod('cash')">
+                        <span class="luxury-pay-check"></span>
+                        <span class="luxury-pay-icon">💵</span>
+                        <span class="luxury-pay-title">كاش</span>
+                        <span class="luxury-pay-sub">نقدي</span>
+                    </div>
+                    <div class="luxury-pay-card" data-value="card" onclick="setBuyPaymentMethod('card')">
+                        <span class="luxury-pay-check"></span>
+                        <span class="luxury-pay-icon">💳</span>
+                        <span class="luxury-pay-title">بطاقة</span>
+                        <span class="luxury-pay-sub">صراف</span>
+                    </div>
+                    <div class="luxury-pay-card" data-value="credit" onclick="setBuyPaymentMethod('credit')">
+                        <span class="luxury-pay-check"></span>
+                        <span class="luxury-pay-icon">📑</span>
+                        <span class="luxury-pay-title">ذمم</span>
+                        <span class="luxury-pay-sub">شكك</span>
+                    </div>
                 </div>
-                <div id="modalBuyPaymentHint" class="payment-hint-bar hint-cash" style="margin-top: 0.45rem;">
+                <div id="modalBuyPaymentHint" class="buy-grocery-hint payment-hint-bar hint-cash">
                     💵 سيُخصم من <strong>الكاش الفعلي</strong> (المجمد)
                 </div>
             </div>
 
             <!-- Target Envelope -->
-            <div class="form-group" style="margin-top: 1rem;">
-                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 0.35rem; display: block;">الظرف المالي المستهدف: *</label>
-                <select name="envelope_id" id="modalBuyEnvelope" class="styled-input" required>
+            <div style="margin-top: 1.1rem;">
+                <label style="font-weight: 800; font-size: 0.88rem; color: #f1f5f9; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span>الظرف المالي المستهدف:</span>
+                    <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">خصم مباشر من الميزانية</span>
+                </label>
+                <select name="envelope_id" id="modalBuyEnvelope" class="buy-grocery-select" required>
                     @foreach($envelopes as $env)
                         <option value="{{ $env->id }}" {{ $env->id == $defaultEnvId ? 'selected' : '' }}>
                             {{ $env->icon ?? '✉️' }} {{ $env->name }} (رصيد متبقي: {{ number_format($env->remaining_budget, 1) }} ₪)
@@ -3415,11 +3439,14 @@
                 </select>
             </div>
 
-            <div class="modal-actions" style="margin-top: 1.35rem; display: flex; gap: 0.75rem;">
-                <button type="button" class="btn-subtle" onclick="closeModal('buySingleGroceryItemModal')" style="flex: 1;">إلغاء</button>
-                <button type="submit" class="btn-primary" id="modalBuySubmitBtn" style="flex: 2; background: linear-gradient(135deg, #10b981, #059669); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <!-- Actions -->
+            <div style="margin-top: 1.35rem; display: flex; gap: 0.65rem;">
+                <button type="button" class="buy-grocery-cancel-btn" onclick="closeModal('buySingleGroceryItemModal')" style="flex: 1;">
+                    إلغاء
+                </button>
+                <button type="submit" class="buy-grocery-submit-btn" id="modalBuySubmitBtn" style="flex: 2;">
                     <span>💳</span>
-                    <span>تأكيد الشراء وترحيل للمصروفات</span>
+                    <span>تأكيد الشراء وترحيل للمصروف</span>
                 </button>
             </div>
         </form>
@@ -4958,23 +4985,43 @@
         }, 120);
     };
 
+    // Fast-Add Price Shortcuts
+    window.addQuickPrice = function(increment) {
+        const input = document.getElementById('modalBuyAmount');
+        if (!input) return;
+        const current = parseFloat(input.value) || 0;
+        const total = current + increment;
+        input.value = total.toFixed(total % 1 === 0 ? 0 : 1);
+        input.focus();
+        if (typeof navigator.vibrate === 'function') {
+            try { navigator.vibrate(20); } catch(e) {}
+        }
+    };
+
+    window.clearQuickPrice = function() {
+        const input = document.getElementById('modalBuyAmount');
+        if (!input) return;
+        input.value = '';
+        input.focus();
+    };
+
     // Payment method pill selection in Buy Modal
     window.setBuyPaymentMethod = function(method) {
         const input = document.getElementById('modalBuyPaymentMethod');
         if (input) input.value = method;
 
-        const pills = document.querySelectorAll('#modalBuyPaymentPills .pay-pill');
-        pills.forEach(pill => {
-            if (pill.getAttribute('data-value') === method) {
-                pill.classList.add('active');
+        const cards = document.querySelectorAll('#modalBuyPaymentPills .luxury-pay-card, #modalBuyPaymentPills .pay-pill');
+        cards.forEach(card => {
+            if (card.getAttribute('data-value') === method) {
+                card.classList.add('active');
             } else {
-                pill.classList.remove('active');
+                card.classList.remove('active');
             }
         });
 
         const hintEl = document.getElementById('modalBuyPaymentHint');
         if (hintEl) {
-            hintEl.className = `payment-hint-bar hint-${method}`;
+            hintEl.className = `buy-grocery-hint payment-hint-bar hint-${method}`;
             if (method === 'transfer') {
                 hintEl.innerHTML = '📱 سيُخصم من <strong>رصيد التطبيق الفعّال</strong> (السيولة الحية)';
             } else if (method === 'cash') {
