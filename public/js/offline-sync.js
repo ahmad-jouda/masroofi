@@ -36,14 +36,97 @@ const MasroofiOffline = {
         });
     },
 
-    // Add a pending transaction to IndexedDB
+    // Add or update a pending transaction in IndexedDB
     async addTransaction(tx) {
         const db = await this.initDB();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([this.STORE_NAME], 'readwrite');
             const store = transaction.objectStore(this.STORE_NAME);
 
+            // If it's an update, check if an existing pending update or creation for this target exists
+            if (tx.action === 'update' && tx.target_id) {
+                const getAllReq = store.getAll();
+                getAllReq.onsuccess = (e) => {
+                    const allItems = e.target.result || [];
+                    const existingUpdate = allItems.find(item => item.action === 'update' && item.target_id === tx.target_id);
+                    if (existingUpdate) {
+                        const updatedRecord = {
+                            ...existingUpdate,
+                            type: tx.type || 'expense',
+                            amount: parseFloat(tx.amount),
+                            envelope_id: tx.envelope_id ? parseInt(tx.envelope_id) : null,
+                            envelope_name: tx.envelope_name || null,
+                            goal_id: tx.goal_id ? parseInt(tx.goal_id) : null,
+                            goal_name: tx.goal_name || null,
+                            date: tx.date || new Date().toISOString().split('T')[0],
+                            payment_method: tx.payment_method || 'transfer',
+                            note: tx.note ? tx.note.trim() : '',
+                            updatedAt: new Date().toISOString()
+                        };
+                        const putReq = store.put(updatedRecord);
+                        putReq.onsuccess = () => {
+                            MasroofiOffline.requestBackgroundSync();
+                            resolve(existingUpdate.id);
+                        };
+                        putReq.onerror = (err) => reject(err);
+                        return;
+                    }
+
+                    // Also check if this target_id is actually an existing offline pending creation
+                    const existingPendingCreate = allItems.find(item => (item.action || 'create') === 'create' && (item.id === tx.target_id || item.temp_id === tx.target_id));
+                    if (existingPendingCreate) {
+                        const updatedCreate = {
+                            ...existingPendingCreate,
+                            type: tx.type || 'expense',
+                            amount: parseFloat(tx.amount),
+                            envelope_id: tx.envelope_id ? parseInt(tx.envelope_id) : null,
+                            envelope_name: tx.envelope_name || null,
+                            goal_id: tx.goal_id ? parseInt(tx.goal_id) : null,
+                            goal_name: tx.goal_name || null,
+                            date: tx.date || new Date().toISOString().split('T')[0],
+                            payment_method: tx.payment_method || 'transfer',
+                            note: tx.note ? tx.note.trim() : '',
+                            updatedAt: new Date().toISOString()
+                        };
+                        const putReq = store.put(updatedCreate);
+                        putReq.onsuccess = () => {
+                            MasroofiOffline.requestBackgroundSync();
+                            resolve(existingPendingCreate.id);
+                        };
+                        putReq.onerror = (err) => reject(err);
+                        return;
+                    }
+
+                    const record = {
+                        action: 'update',
+                        target_id: tx.target_id ? parseInt(tx.target_id) : null,
+                        type: tx.type || 'expense',
+                        amount: parseFloat(tx.amount),
+                        envelope_id: tx.envelope_id ? parseInt(tx.envelope_id) : null,
+                        envelope_name: tx.envelope_name || null,
+                        goal_id: tx.goal_id ? parseInt(tx.goal_id) : null,
+                        goal_name: tx.goal_name || null,
+                        date: tx.date || new Date().toISOString().split('T')[0],
+                        payment_method: tx.payment_method || 'transfer',
+                        note: tx.note ? tx.note.trim() : '',
+                        old_amount: tx.old_amount ? parseFloat(tx.old_amount) : null,
+                        old_type: tx.old_type || null,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    const addReq = store.add(record);
+                    addReq.onsuccess = (ev) => {
+                        MasroofiOffline.requestBackgroundSync();
+                        resolve(ev.target.result);
+                    };
+                    addReq.onerror = (err) => reject(err);
+                };
+                getAllReq.onerror = (err) => reject(err);
+                return;
+            }
+
             const record = {
+                action: 'create',
                 type: tx.type || 'expense',
                 amount: parseFloat(tx.amount),
                 envelope_id: tx.envelope_id ? parseInt(tx.envelope_id) : null,
@@ -193,8 +276,21 @@ const MasroofiOffline = {
         }
 
         try {
+            const creates = pending.filter(item => (item.action || 'create') === 'create');
+            const updates = pending.filter(item => item.action === 'update');
+
             const payload = {
-                transactions: pending.map(item => ({
+                transactions: creates.map(item => ({
+                    type: item.type,
+                    amount: item.amount,
+                    envelope_id: item.envelope_id || null,
+                    goal_id: item.goal_id || null,
+                    date: item.date,
+                    payment_method: item.payment_method,
+                    note: item.note || null
+                })),
+                updates: updates.map(item => ({
+                    id: item.target_id,
                     type: item.type,
                     amount: item.amount,
                     envelope_id: item.envelope_id || null,
@@ -232,7 +328,8 @@ const MasroofiOffline = {
                     closeModal('offlineSyncModal');
                 }
 
-                this.showToast(`🎉 تم مزامنة ${data.synced_count} معاملات بنجاح مع السيرفر! جاري تحديث البيانات...`, 'success');
+                const countMsg = data.synced_count || pending.length;
+                this.showToast(`🎉 تم مزامنة ${countMsg} معاملات وتعديلات بنجاح مع السيرفر! جاري تحديث البيانات...`, 'success');
 
                 if (typeof confetti === 'function') {
                     confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
@@ -289,9 +386,13 @@ const MasroofiOffline = {
 
         let html = '';
         pending.forEach((item) => {
+            const isUpdate = item.action === 'update';
             const typeInfo = typeLabels[item.type] || typeLabels.expense;
             const payInfo = methodLabels[item.payment_method] || item.payment_method;
             const targetName = item.envelope_name || item.goal_name || (item.type === 'income' ? 'دخل / يومية' : 'مصروف عام');
+            const actionBadge = isUpdate
+                ? `<span style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); padding: 1px 6px; border-radius: 4px; margin-right: 4px; font-weight: 700;">✏️ تعديل #${item.target_id}</span>`
+                : '';
 
             html += `
                 <div class="offline-item-card" id="offline-item-${item.id}">
@@ -299,6 +400,7 @@ const MasroofiOffline = {
                         <div class="offline-item-type-badge ${typeInfo.class}">
                             <span>${typeInfo.icon}</span>
                             <span>${typeInfo.label}</span>
+                            ${actionBadge}
                         </div>
                         <div class="offline-item-amount">
                             ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -307,6 +409,7 @@ const MasroofiOffline = {
                     <div class="offline-item-details">
                         <div class="offline-item-target">📁 ${targetName}</div>
                         ${item.note ? `<div class="offline-item-note">📝 ${item.note}</div>` : ''}
+                        ${isUpdate && item.old_amount ? `<div style="font-size: 0.72rem; color: #94a3b8;">المبلغ قبل التعديل: ${item.old_amount}</div>` : ''}
                     </div>
                     <div class="offline-item-footer">
                         <div class="offline-item-meta">
@@ -314,7 +417,7 @@ const MasroofiOffline = {
                             <span>•</span>
                             <span>${payInfo}</span>
                         </div>
-                        <button type="button" class="btn-del-offline-item" onclick="MasroofiOffline.removePendingItem(${item.id})" title="حذف هذه المعاملة">
+                        <button type="button" class="btn-del-offline-item" onclick="MasroofiOffline.removePendingItem(${item.id})" title="حذف هذا البند المعلق">
                             🗑️ حذف
                         </button>
                     </div>
@@ -673,7 +776,11 @@ const MasroofiOffline = {
 
             // Apply each pending item in chronological order
             pending.forEach(tx => {
-                this.applyTransactionToUI(tx, false);
+                if (tx.action === 'update') {
+                    this.applyEditToUI(tx, false);
+                } else {
+                    this.applyTransactionToUI(tx, false);
+                }
             });
         } catch (e) {
             console.error('Error applying pending transactions to UI:', e);
@@ -812,12 +919,280 @@ const MasroofiOffline = {
         });
     },
 
+    // Apply edited transaction optimistically to UI
+    applyEditToUI(record, isNew = true) {
+        const appCurrency = document.querySelector('meta[name="app-currency"]')?.content || 'ILS';
+        const newAmount = parseFloat(record.amount) || 0;
+        const oldAmount = parseFloat(record.old_amount) || newAmount;
+        const newType = record.type || 'expense';
+        const oldType = record.old_type || newType;
+
+        // 1. Calculate impact on Today's Daily Remaining (if transaction date is today)
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (record.date === todayStr) {
+            const dailyEl = document.getElementById('safeDailyAmount');
+            if (dailyEl) {
+                const currentRem = parseFloat(dailyEl.getAttribute('data-current-val') || dailyEl.getAttribute('data-base-val') || dailyEl.textContent.replace(/,/g, '')) || 0;
+                const currentSpent = parseFloat(dailyEl.getAttribute('data-current-spent') || dailyEl.getAttribute('data-base-spent')) || 0;
+
+                let deltaSpent = 0;
+                let deltaIncome = 0;
+
+                if (oldType === 'expense') deltaSpent -= oldAmount;
+                if (oldType === 'income') deltaIncome -= oldAmount;
+
+                if (newType === 'expense') deltaSpent += newAmount;
+                if (newType === 'income') deltaIncome += newAmount;
+
+                const newSpent = Math.max(0, currentSpent + deltaSpent);
+                const newRem = Math.max(0, currentRem - deltaSpent + deltaIncome);
+
+                dailyEl.setAttribute('data-current-val', newRem);
+                dailyEl.setAttribute('data-current-spent', newSpent);
+                dailyEl.textContent = Math.round(newRem).toLocaleString();
+
+                const spentDisp = document.getElementById('todaySpentDisplay');
+                if (spentDisp) spentDisp.textContent = `${Math.round(newSpent).toLocaleString()} ${appCurrency}`;
+
+                const remDisp = document.getElementById('todayRemainingSummaryDisplay');
+                if (remDisp) remDisp.textContent = `${Math.round(newRem).toLocaleString()} ${appCurrency}`;
+            }
+        }
+
+        // 2. Update Ledger Table Row if present
+        const row = document.getElementById(`ledger-tx-row-${record.target_id}`) || document.querySelector(`tr[data-tx-id="${record.target_id}"]`);
+        if (row) {
+            const typeBadges = {
+                expense: '<span style="color:#ef4444; font-weight:700">🔴 مصروف</span>',
+                income: '<span style="color:#10b981; font-weight:700">🟢 دخل إضافي</span>',
+                savings: '<span style="color:#f59e0b; font-weight:700">🔵 تحويل لحصالة</span>'
+            };
+            const payLabels = {
+                transfer: '📱 تطبيق',
+                cash: '💵 كاش',
+                card: '💳 بطاقة',
+                credit: '📑 دين/آجل'
+            };
+            const targetName = record.envelope_name || record.goal_name || (record.type === 'income' ? 'دخل / يومية' : 'عام');
+            const sign = (record.type === 'income') ? '+' : ((record.type === 'savings') ? '🪙' : '-');
+
+            const cells = row.children;
+            if (cells.length >= 7) {
+                // Date
+                cells[0].textContent = record.date;
+                // Type + Pending Tag
+                cells[1].innerHTML = `${typeBadges[record.type] || typeBadges.expense} <span class="badge-offline-pending" style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.18); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 5px; border-radius: 4px; margin-right: 4px;">✏️ معدل محلياً</span>`;
+                // Category / Envelope
+                cells[2].innerHTML = `<strong>📁 ${this.escapeHtml(targetName)}</strong>`;
+                // Note
+                cells[3].innerHTML = `${this.escapeHtml(record.note || '—')} <small style="display: block; color: #f59e0b; font-size: 0.72rem; margin-top: 0.15rem;">⚡ تعديل أوفلاين</small>`;
+                // Payment method
+                cells[4].textContent = payLabels[record.payment_method] || record.payment_method;
+                // Amount
+                cells[5].className = `tx-amount-display ${record.type}`;
+                cells[5].textContent = `${sign} ${newAmount.toFixed(2)} ${appCurrency}`;
+                // Update edit button with new data
+                const editBtn = cells[6].querySelector('.btn-edit-tx');
+                if (editBtn) {
+                    const updatedObj = {
+                        id: record.target_id,
+                        type: record.type,
+                        amount: record.amount,
+                        envelope_id: record.envelope_id,
+                        goal_id: record.goal_id,
+                        date: record.date,
+                        payment_method: record.payment_method,
+                        note: record.note
+                    };
+                    editBtn.setAttribute('onclick', `openEditTxModal(${JSON.stringify(updatedObj)})`);
+                }
+            }
+
+            if (isNew) {
+                row.style.transition = 'background-color 0.5s ease';
+                row.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+                setTimeout(() => {
+                    row.style.backgroundColor = '';
+                }, 1200);
+            }
+        }
+
+        // 3. Update Recent Tx Card if present on Home Tab
+        const card = document.getElementById(`recent-tx-card-${record.target_id}`) || document.querySelector(`.tx-item[data-tx-id="${record.target_id}"]`);
+        if (card) {
+            const targetName = record.envelope_name || record.goal_name || (record.type === 'income' ? 'دخل / يومية' : 'عام');
+            const sign = (record.type === 'income') ? '+' : ((record.type === 'savings') ? '🪙' : '-');
+
+            const nameEl = card.querySelector('.tx-name');
+            if (nameEl) {
+                nameEl.innerHTML = `${this.escapeHtml(record.note || targetName)} <span class="badge-offline-pending" style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.18); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 5px; border-radius: 4px; margin-right: 4px;">✏️ معدل</span>`;
+            }
+            const metaEl = card.querySelector('.tx-meta');
+            if (metaEl) {
+                metaEl.textContent = `📁 ${targetName} • ${record.date} • ⚡ تعديل محلي`;
+            }
+            const amtEl = card.querySelector('.tx-amount-display');
+            if (amtEl) {
+                amtEl.className = `tx-amount-display ${record.type}`;
+                amtEl.textContent = `${sign} ${newAmount.toFixed(2)} ${appCurrency}`;
+            }
+            const editBtn = card.querySelector('.btn-edit-tx');
+            if (editBtn) {
+                const updatedObj = {
+                    id: record.target_id,
+                    type: record.type,
+                    amount: record.amount,
+                    envelope_id: record.envelope_id,
+                    goal_id: record.goal_id,
+                    date: record.date,
+                    payment_method: record.payment_method,
+                    note: record.note
+                };
+                editBtn.setAttribute('onclick', `openEditTxModal(${JSON.stringify(updatedObj)})`);
+            }
+            if (isNew) {
+                card.style.transition = 'background-color 0.5s ease';
+                card.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+                setTimeout(() => {
+                    card.style.backgroundColor = '';
+                }, 1200);
+            }
+        }
+    },
+
+    // Hook Edit Form Submit for Instant Optimistic Edit & Offline Resilience
+    setupEditFormInterceptor() {
+        const editForm = document.getElementById('editTxForm');
+        if (!editForm) return;
+
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const txId = editForm.getAttribute('data-tx-id') || (editForm.action ? editForm.action.split('/').filter(Boolean).pop() : null);
+            if (!txId) {
+                editForm.submit();
+                return;
+            }
+
+            const amountInput = editForm.querySelector('input[name="amount"]');
+            const amount = parseFloat(amountInput ? amountInput.value : 0);
+            if (!amount || amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح.');
+                return;
+            }
+
+            const type = (editForm.querySelector('input[name="type"]:checked')?.value) || 'expense';
+            const date = (editForm.querySelector('input[name="date"]')?.value) || new Date().toISOString().split('T')[0];
+            const payment_method = (editForm.querySelector('input[name="payment_method"]')?.value) || 'transfer';
+            const note = (editForm.querySelector('input[name="note"]')?.value) || '';
+
+            let envelope_id = null;
+            let envelope_name = null;
+            if (type === 'expense') {
+                const envSelect = document.getElementById('editTxEnvelopeSelect');
+                if (envSelect && envSelect.value) {
+                    envelope_id = envSelect.value;
+                    envelope_name = envSelect.options[envSelect.selectedIndex]?.text?.trim() || null;
+                }
+            }
+
+            let goal_id = null;
+            let goal_name = null;
+            if (type === 'savings') {
+                const goalSelect = document.getElementById('editTxGoalSelect');
+                if (goalSelect && goalSelect.value) {
+                    goal_id = goalSelect.value;
+                    goal_name = goalSelect.options[goalSelect.selectedIndex]?.text?.trim() || null;
+                }
+            }
+
+            const originalTxStr = editForm.getAttribute('data-original-tx');
+            let originalTx = {};
+            try {
+                if (originalTxStr) originalTx = JSON.parse(originalTxStr);
+            } catch (err) {}
+
+            const oldAmount = parseFloat(originalTx.amount) || amount;
+            const oldType = originalTx.type || type;
+
+            const record = {
+                action: 'update',
+                target_id: isNaN(parseInt(txId)) ? txId : parseInt(txId),
+                type,
+                amount,
+                envelope_id,
+                envelope_name,
+                goal_id,
+                goal_name,
+                date,
+                payment_method,
+                note,
+                old_amount: oldAmount,
+                old_type: oldType
+            };
+
+            // 1. Instant close and UI feedback
+            if (typeof closeModal === 'function') {
+                closeModal('editTransactionModal');
+            }
+
+            // 2. Immediately apply updated numbers & visuals to UI
+            this.applyEditToUI(record, true);
+
+            // 3. Perform network save or offline queue
+            if (navigator.onLine) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                try {
+                    const response = await fetch(editForm.action || `/transactions/${txId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            _method: 'PUT',
+                            type: record.type,
+                            amount: record.amount,
+                            envelope_id: record.envelope_id || null,
+                            goal_id: record.goal_id || null,
+                            date: record.date,
+                            payment_method: record.payment_method,
+                            note: record.note || null
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            const msg = data.adjustment_message ? `⚡ تم تحديث المعاملة بنجاح! (${data.adjustment_message})` : '⚡ تم حفظ التعديلات وتحديث الرصيد فوراً! ✅';
+                            this.showToast(msg, 'success');
+                            return;
+                        }
+                    }
+                    throw new Error('Server non-OK status');
+                } catch (err) {
+                    console.warn('Online edit failed, saving update offline:', err);
+                    await this.addTransaction(record);
+                    this.showToast('📡 ضعف في الاتصال: تم حفظ التعديل في جهازك وسيتم مزامنته تلقائياً.', 'warning');
+                    await this.updateUI();
+                }
+            } else {
+                // Completely offline
+                await this.addTransaction(record);
+                this.showToast('⚡ تم تعديل المعاملة محلياً وتحديث الرصيد فوراً! ستتم المزامنة مع السيرفر تلقائياً عند عودة الاتصال.', 'success');
+                await this.updateUI();
+            }
+        });
+    },
+
     // Setup Event Listeners
     init() {
         this.initDB().then(() => {
             this.updateUI();
             this.applyAllPendingOptimistically();
             this.setupFormInterceptor();
+            this.setupEditFormInterceptor();
 
             // When network is restored, automatically sync!
             window.addEventListener('online', () => {

@@ -145,7 +145,7 @@ class TransactionController extends Controller
     public function syncOffline(Request $request)
     {
         $validated = $request->validate([
-            'transactions' => 'required|array|min:1',
+            'transactions' => 'nullable|array',
             'transactions.*.type' => 'required|in:expense,income,savings',
             'transactions.*.amount' => 'required|numeric|min:0.01',
             'transactions.*.envelope_id' => 'nullable|exists:envelopes,id',
@@ -153,12 +153,33 @@ class TransactionController extends Controller
             'transactions.*.date' => 'required|date',
             'transactions.*.payment_method' => 'required|in:card,cash,transfer,credit',
             'transactions.*.note' => 'nullable|string|max:255',
+            'updates' => 'nullable|array',
+            'updates.*.id' => 'required|integer',
+            'updates.*.type' => 'required|in:expense,income,savings',
+            'updates.*.amount' => 'required|numeric|min:0.01',
+            'updates.*.envelope_id' => 'nullable|exists:envelopes,id',
+            'updates.*.goal_id' => 'nullable|exists:saving_goals,id',
+            'updates.*.date' => 'required|date',
+            'updates.*.payment_method' => 'required|in:card,cash,transfer,credit',
+            'updates.*.note' => 'nullable|string|max:255',
         ]);
 
-        $created = [];
+        $transactionsList = $validated['transactions'] ?? [];
+        $updatesList = $validated['updates'] ?? [];
 
-        DB::transaction(function () use ($validated, &$created) {
-            foreach ($validated['transactions'] as $txData) {
+        if (empty($transactionsList) && empty($updatesList)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا توجد بيانات أو معاملات للمزامنة',
+            ], 422);
+        }
+
+        $created = [];
+        $updated = [];
+        $affectedDates = collect();
+
+        DB::transaction(function () use ($transactionsList, $updatesList, &$created, &$updated, &$affectedDates) {
+            foreach ($transactionsList as $txData) {
                 $isSavings = ($txData['type'] === 'savings');
                 $isIncome = ($txData['type'] === 'income');
                 $tx = Transaction::create([
@@ -179,25 +200,74 @@ class TransactionController extends Controller
                 }
 
                 $created[] = $tx;
+                if ($tx->type === 'expense') {
+                    $affectedDates->push(Carbon::parse($tx->date)->toDateString());
+                }
+            }
+
+            foreach ($updatesList as $upData) {
+                $tx = Transaction::find($upData['id']);
+                if (! $tx) {
+                    continue;
+                }
+
+                $oldDate = Carbon::parse($tx->date)->toDateString();
+                $oldType = $tx->type;
+
+                if ($oldType === 'expense') {
+                    $affectedDates->push($oldDate);
+                }
+
+                // Revert old saving goal
+                if ($tx->type === 'savings' && $tx->goal_id) {
+                    $oldGoal = SavingGoal::find($tx->goal_id);
+                    if ($oldGoal) {
+                        $oldGoal->decrement('current_amount', min((float) $oldGoal->current_amount, (float) $tx->amount));
+                    }
+                }
+
+                $isSavings = ($upData['type'] === 'savings');
+                $isIncome = ($upData['type'] === 'income');
+
+                $tx->update([
+                    'type' => $upData['type'],
+                    'amount' => $upData['amount'],
+                    'envelope_id' => ! $isIncome ? ($upData['envelope_id'] ?? null) : null,
+                    'goal_id' => $isSavings ? ($upData['goal_id'] ?? null) : null,
+                    'date' => $upData['date'],
+                    'payment_method' => $upData['payment_method'],
+                    'note' => $upData['note'] ?? null,
+                ]);
+
+                // Apply new saving goal
+                if ($tx->type === 'savings' && ! empty($tx->goal_id)) {
+                    $newGoal = SavingGoal::find($tx->goal_id);
+                    if ($newGoal) {
+                        $newGoal->increment('current_amount', $tx->amount);
+                    }
+                }
+
+                $updated[] = $tx;
+                if ($tx->type === 'expense') {
+                    $affectedDates->push(Carbon::parse($tx->date)->toDateString());
+                }
             }
         });
 
-        $expenseDates = collect($validated['transactions'])
-            ->where('type', 'expense')
-            ->pluck('date')
-            ->map(fn ($d) => Carbon::parse($d)->toDateString())
-            ->filter(fn ($d) => Carbon::parse($d)->lt(Carbon::today()))
-            ->unique();
-
-        foreach ($expenseDates as $expDate) {
+        foreach ($affectedDates->unique()->filter(fn ($d) => Carbon::parse($d)->lt(Carbon::today())) as $expDate) {
             DailySurplusAdjustmentService::recalculateForDate($expDate);
         }
 
+        $totalSynced = count($created) + count($updated);
+
         return response()->json([
             'success' => true,
-            'synced_count' => count($created),
+            'synced_count' => $totalSynced,
+            'created_count' => count($created),
+            'updated_count' => count($updated),
             'transactions' => $created,
-            'message' => 'تمت مزامنة العمليات بنجاح ✅',
+            'updates' => $updated,
+            'message' => 'تمت المزامنة بنجاح ✅',
         ]);
     }
 

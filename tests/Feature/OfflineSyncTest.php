@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Envelope;
 use App\Models\SavingGoal;
+use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -98,5 +99,54 @@ class OfflineSyncTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    public function test_can_batch_sync_offline_transaction_updates(): void
+    {
+        $envelope = Envelope::create([
+            'name' => 'فواتير',
+            'icon' => '📄',
+            'type' => 'needs',
+            'allocated_amount' => 300,
+        ]);
+
+        $tx = Transaction::create([
+            'type' => 'expense',
+            'amount' => 50.00,
+            'envelope_id' => $envelope->id,
+            'date' => now()->toDateString(),
+            'payment_method' => 'cash',
+            'note' => 'فاتورة مبدئية',
+        ]);
+
+        $payload = [
+            'updates' => [
+                [
+                    'id' => $tx->id,
+                    'type' => 'expense',
+                    'amount' => 75.00,
+                    'envelope_id' => $envelope->id,
+                    'date' => now()->toDateString(),
+                    'payment_method' => 'card',
+                    'note' => 'فاتورة معدلة أوفلاين',
+                ],
+            ],
+        ];
+
+        $response = $this->postJson('/transactions/sync', $payload);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'synced_count' => 1,
+                'updated_count' => 1,
+            ]);
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $tx->id,
+            'amount' => 75.00,
+            'payment_method' => 'card',
+            'note' => 'فاتورة معدلة أوفلاين',
+        ]);
     }
 }

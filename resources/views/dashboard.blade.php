@@ -405,7 +405,7 @@
         </div>
         <div class="transactions-list" id="recentTxList">
             @forelse($recentTransactions as $tx)
-                <div class="tx-item">
+                <div class="tx-item" data-tx-id="{{ $tx->id }}" id="recent-tx-card-{{ $tx->id }}">
                     <div class="tx-item-left">
                         <div class="tx-category-icon">
                             {{ ($tx->type === 'savings' && $tx->goal) ? $tx->goal->icon : ($tx->envelope ? $tx->envelope->icon : '💸') }}
@@ -1141,7 +1141,7 @@
             </thead>
             <tbody id="ledgerTableBody">
                 @forelse($allTransactions as $tx)
-                    <tr>
+                    <tr data-tx-id="{{ $tx->id }}" id="ledger-tx-row-{{ $tx->id }}">
                         <td style="font-family: var(--font-numbers); font-weight: 600">{{ $tx->date->format('Y-m-d') }}</td>
                         <td>
                             @if($tx->type == 'expense') <span style="color:#ef4444; font-weight:700">🔴 مصروف</span>
@@ -3355,7 +3355,11 @@
     function openEditTxModal(tx) {
         if (!tx) return;
         const form = document.getElementById('editTxForm');
-        if (form) form.action = `/transactions/${tx.id}`;
+        if (form) {
+            form.action = `/transactions/${tx.id}`;
+            form.setAttribute('data-tx-id', tx.id);
+            form.setAttribute('data-original-tx', JSON.stringify(tx));
+        }
 
         // Set Type
         setEditTxType(tx.type || 'expense');
