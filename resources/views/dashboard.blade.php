@@ -1115,7 +1115,11 @@
             <h2 style="font-size: 1.35rem; font-weight: 800">📝 سجل المعاملات والمصروفات</h2>
             <p class="section-desc">عرض تفصيلي لجميع الحركات المالية المخزنة في MySQL.</p>
         </div>
-        <div class="ledger-top-actions">
+        <div class="ledger-top-actions" style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+            <a href="{{ route('transactions.exportPdf') }}" target="_blank" class="btn-ledger-pdf" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.62rem 1.15rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(37, 99, 235, 0.22)); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.45); border-radius: 12px; font-weight: 800; font-size: 0.88rem; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);" title="تصدير كشف حساب وحركات جدول المعاملات كتقرير PDF رسمي قابل للطباعة والحفظ">
+                <span style="font-size: 1rem;">📄</span>
+                <span>تصدير تقرير PDF</span>
+            </a>
             <button class="btn-primary" onclick="openTxModal('expense')">
                 ➕ إضافة حركة جديدة
             </button>

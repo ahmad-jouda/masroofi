@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\DebtRecord;
+use App\Models\Envelope;
+use App\Models\SalarySource;
 use App\Models\SavingGoal;
 use App\Models\Transaction;
+use App\Models\UserSetting;
+use App\Models\Workspace;
 use App\Services\DailySurplusAdjustmentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -232,5 +236,101 @@ class TransactionController extends Controller
         }
 
         return redirect()->route('dashboard')->with('success', 'تم حذف المعاملة وتحديث الرصيد'.$adjText);
+    }
+
+    /**
+     * Export Transactions Ledger report as printable PDF statement view.
+     */
+    public function exportPdf(Request $request)
+    {
+        $workspaceId = $request->user()?->workspace_id ?? 1;
+        $workspace = $request->user()?->workspace ?? Workspace::find($workspaceId);
+        $settings = UserSetting::firstOrCreate(['workspace_id' => $workspaceId]);
+
+        $period = $request->query('period', 'current_cycle');
+        $type = $request->query('type', 'all');
+        $envelopeId = $request->query('envelope_id');
+        $userId = $request->query('user_id');
+        $fromDate = $request->query('from');
+        $toDate = $request->query('to');
+
+        // Determine date range
+        $today = Carbon::today();
+        $startDate = null;
+        $endDate = null;
+        $periodLabel = 'كل السجل الزمني';
+
+        if ($period === 'current_cycle') {
+            $firstSalaryDay = SalarySource::where('is_active', true)->min('day_of_month');
+            $cycleMode = $settings->cycle_mode ?? 'first_salary';
+            $salaryDay = ($cycleMode === 'first_salary' && $firstSalaryDay) ? (int) $firstSalaryDay : (int) ($settings->salary_day ?: ($firstSalaryDay ?: 1));
+
+            if ($today->day >= $salaryDay) {
+                $startDate = Carbon::create($today->year, $today->month, min($salaryDay, 28))->startOfDay();
+            } else {
+                $startDate = Carbon::create($today->year, $today->month, min($salaryDay, 28))->subMonth()->startOfDay();
+            }
+            $endDate = (clone $startDate)->addMonthNoOverflow()->subDay()->endOfDay();
+            $periodLabel = "دورة الراتب الحالية ({$startDate->format('Y/m/d')} إلى {$endDate->format('Y/m/d')})";
+        } elseif ($period === 'current_month') {
+            $startDate = $today->copy()->startOfMonth();
+            $endDate = $today->copy()->endOfMonth();
+            $periodLabel = "الشهر الحالي ({$startDate->format('Y/m/d')} إلى {$endDate->format('Y/m/d')})";
+        } elseif ($period === 'last_month') {
+            $startDate = $today->copy()->subMonth()->startOfMonth();
+            $endDate = $today->copy()->subMonth()->endOfMonth();
+            $periodLabel = "الشهر السابق ({$startDate->format('Y/m/d')} إلى {$endDate->format('Y/m/d')})";
+        } elseif ($period === 'custom' && $fromDate && $toDate) {
+            $startDate = Carbon::parse($fromDate)->startOfDay();
+            $endDate = Carbon::parse($toDate)->endOfDay();
+            $periodLabel = "فترة مخصصة ({$startDate->format('Y/m/d')} إلى {$endDate->format('Y/m/d')})";
+        }
+
+        $query = Transaction::with(['envelope', 'goal', 'user']);
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+        }
+
+        if ($type && $type !== 'all') {
+            $query->where('type', $type);
+        }
+
+        if ($envelopeId) {
+            $query->where('envelope_id', $envelopeId);
+        }
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        $transactions = $query->orderBy('date', 'desc')->orderBy('id', 'desc')->get();
+
+        $totalExpenses = (float) $transactions->where('type', 'expense')->sum('amount');
+        $totalIncome = (float) $transactions->where('type', 'income')->sum('amount');
+        $totalSavings = (float) $transactions->where('type', 'savings')->sum('amount');
+        $net = $totalIncome - $totalExpenses - $totalSavings;
+
+        $envelopes = Envelope::all();
+        $members = $workspace ? $workspace->users()->get() : collect([$request->user()]);
+
+        return view('reports.ledger-pdf', compact(
+            'transactions',
+            'workspace',
+            'settings',
+            'period',
+            'type',
+            'envelopeId',
+            'userId',
+            'fromDate',
+            'toDate',
+            'periodLabel',
+            'totalExpenses',
+            'totalIncome',
+            'totalSavings',
+            'net',
+            'envelopes',
+            'members'
+        ));
     }
 }

@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Transactions
+    Route::get('/ledger/export/pdf', [TransactionController::class, 'exportPdf'])->name('transactions.exportPdf');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
     Route::put('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
     Route::post('/transactions/sync', [TransactionController::class, 'syncOffline'])->name('transactions.sync');
