@@ -73,6 +73,9 @@
                 <span>المؤشر المالي اليومي الأذكى</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <button type="button" class="btn-text-action" onclick="openModal('financialMirrorModal')" title="كشف حساب تحليلي شهري شامل يخبرك بأجمل وأصعب لحظات الشهر وأكثر ظرف استنزف ميزانيتك" style="background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
+                    🪞 المرآة المالية الشهرية
+                </button>
                 <button type="button" class="btn-text-action" onclick="openModal('familyWorkspaceModal')" title="إدارة ومشاركة المحفظة مع الزوجة أو أفراد الأسرة" style="background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa;">
                     👨‍👩‍👧‍👦 أفراد المحفظة ({{ auth()->user()->workspace?->users()->count() ?? 1 }})
                 </button>
@@ -112,6 +115,37 @@
                 <span class="celebration-badge-btn">🎉 فتح لوحة الاحتفال</span>
             </div>
         @endif
+
+        <!-- CASHFLOW RUNWAY RADAR ALERT -->
+        <div class="runway-radar-strip status-{{ $cashflowRunway['status'] }}" onclick="openRunwayRadarModal()" title="انقر لتفاصيل رادار التنبؤ ومحاكاة السيولة">
+            <div class="radar-strip-icon-box">
+                <span class="radar-strip-icon">{{ $cashflowRunway['status'] === 'safe' ? '🛰️' : '📡' }}</span>
+            </div>
+            <div class="radar-strip-info">
+                <div class="radar-strip-header">
+                    <strong class="radar-strip-tag">
+                        @if($cashflowRunway['status'] === 'safe')
+                            🟢 رادار التنبؤ المالي: وتيرة آمنة ومستقرة
+                        @else
+                            ⚠️ رادار التنبؤ بنفاذ الرصيد: تنبيه سرعة الصرف!
+                        @endif
+                    </strong>
+                    <span class="radar-runway-badge {{ $cashflowRunway['status'] === 'safe' ? 'safe-badge' : 'alert-badge' }}">
+                        @if($cashflowRunway['status'] === 'safe')
+                            فائض متوقع: +{{ number_format($cashflowRunway['projected_surplus'], 0) }} ₪
+                        @else
+                            الرصيد يكفي: {{ $cashflowRunway['runway_days'] }} يوماً فقط
+                        @endif
+                    </span>
+                </div>
+                <p class="radar-strip-msg">
+                    {{ $cashflowRunway['message'] }}
+                </p>
+            </div>
+            <div class="radar-strip-action">
+                <span class="radar-btn-pill">محاكاة الرادار ◀</span>
+            </div>
+        </div>
 
         <div class="safe-card-body">
             <div class="safe-number-col">
@@ -3587,6 +3621,263 @@
                     @endforeach
                 </div>
             </div>
+    </div>
+</div>
+
+<!-- 19. Cashflow Runway Radar Modal (رادار التنبؤ ومحاكاة السيولة) -->
+<div class="modal-backdrop hidden" id="runwayRadarModal">
+    <div class="modal-card modal-card-lg radar-modal-card">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <span style="font-size: 1.8rem;">📡</span>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff;">رادار التنبؤ بنفاذ الرصيد والتدفق المالي</h3>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.82rem; color: #94a3b8;">ذكاء مالي يحلل سرعة استهلاكك للراتب ويحميك من عجز نهاية الشهر مسبقاً</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('runwayRadarModal')">&times;</button>
+        </div>
+
+        <div class="radar-modal-body" style="padding: 1.25rem; overflow-y: auto; max-height: calc(85vh - 120px);">
+            <!-- Status Card -->
+            <div class="radar-hero-panel status-{{ $cashflowRunway['status'] }}">
+                <div class="radar-hero-metrics">
+                    <div class="metric-block">
+                        <span class="metric-label">رصيد التطبيق المتاح للصرف:</span>
+                        <span class="metric-value">{{ number_format($cashflowRunway['app_spendable_balance'], 0) }} ₪</span>
+                    </div>
+                    <div class="metric-block">
+                        <span class="metric-label">معدل صرفك اليومي الحالي:</span>
+                        <span class="metric-value text-burn">{{ $cashflowRunway['burn_rate'] }} ₪/يوم</span>
+                    </div>
+                    <div class="metric-block">
+                        <span class="metric-label">الأيام المتبقية بنهاية الدورة:</span>
+                        <span class="metric-value">{{ $cashflowRunway['days_remaining'] }} يوماً</span>
+                    </div>
+                    <div class="metric-block">
+                        <span class="metric-label">الرصيد الحالي يكفيك:</span>
+                        <span class="metric-value text-runway">{{ $cashflowRunway['runway_days'] }} يوماً</span>
+                    </div>
+                </div>
+
+                <div class="radar-hero-verdict">
+                    <div class="verdict-icon">{{ $cashflowRunway['status'] === 'safe' ? '✅' : '⚠️' }}</div>
+                    <div class="verdict-text">
+                        <strong>{{ $cashflowRunway['title'] }}</strong>
+                        <p>{{ $cashflowRunway['message'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Smart Daily Recommendation Box -->
+            <div class="radar-recommendation-box">
+                <div class="rec-icon">💡</div>
+                <div class="rec-body">
+                    <strong>توصية الخوارزمية المالية الذكية:</strong>
+                    @if($cashflowRunway['status'] !== 'safe')
+                        <p>للوصول إلى موعد الراتب القادم دون انقطاع، يُنصح بتثبيت سقف صرفك اليومي عند <strong>{{ (int)$cashflowRunway['recommended_daily'] }} ₪/يوم</strong>. سيوفر لك هذا التعديل البسيط حماية من استنزاف الرصيد قبل موعده بـ {{ $cashflowRunway['gap_days'] }} أيام!</p>
+                    @else
+                        <p>استمر على هذا المعدل الرائع! وتيرتك الحالية تسمح لك بتحقيق فائض متوقع قدره <strong>{{ number_format($cashflowRunway['projected_surplus'], 0) }} ₪</strong> بنهاية الشهر لتحويلها مباشرة للحصالة أو تعجيل سداد الديون.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Interactive Burn Rate Simulator -->
+            <div class="radar-simulator-panel">
+                <h4 class="sim-title">🎮 محاكي سرعة الصرف التفاعلي (Interactive Cashflow Simulator)</h4>
+                <p class="sim-desc">حرّك المؤشر لاختبار: كيف ستتغير أيام كفاية الرصيد إذا عدّلت مصروفك اليومي؟</p>
+
+                <div class="sim-slider-row">
+                    <label>اليومية المقترحة:</label>
+                    <input type="range" id="simDailySlider" min="10" max="250" step="5" value="{{ (int)$cashflowRunway['burn_rate'] }}" oninput="updateRunwaySimulation(this.value)">
+                    <span class="sim-slider-val"><strong id="simDailyValDisplay">{{ (int)$cashflowRunway['burn_rate'] }}</strong> ₪/يوم</span>
+                </div>
+
+                <div class="sim-result-strip" id="simResultStrip">
+                    <div class="sim-res-item">
+                        <span>أيام كفاية الرصيد:</span>
+                        <strong id="simDaysResult">{{ $cashflowRunway['runway_days'] }} يوماً</strong>
+                    </div>
+                    <div class="sim-res-item">
+                        <span>تاريخ النفاذ المتوقع:</span>
+                        <strong id="simDateResult">{{ $cashflowRunway['exhaustion_day'] ? 'يوم ' . $cashflowRunway['exhaustion_day'] . ' ' . $cashflowRunway['exhaustion_month'] : 'ما بعد نهاية الدورة' }}</strong>
+                    </div>
+                    <div class="sim-res-item">
+                        <span>النتيجة بنهاية الشهر:</span>
+                        <strong id="simStatusResult">
+                            @if($cashflowRunway['status'] !== 'safe')
+                                <span style="color:#ef4444; font-weight:800;">⚠️ عجز قبل الراتب بـ {{ $cashflowRunway['gap_days'] }} أيام</span>
+                            @else
+                                <span style="color:#10b981; font-weight:800;">🟢 أمان وفائض متوقع +{{ number_format($cashflowRunway['projected_surplus'], 0) }} ₪</span>
+                            @endif
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 20. Monthly Mirror Review Modal (تقرير المرآة المالية الشهرية) -->
+<div class="modal-backdrop hidden" id="financialMirrorModal">
+    <div class="modal-card modal-card-lg mirror-modal-card">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <span style="font-size: 1.8rem;">🪞</span>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff;">تقرير المرآة المالية الشهرية</h3>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.82rem; color: #94a3b8;">كشف حساب تحليلي ذكي يختزل أجمل وأصعب لحظات دورتك المالية: {{ $monthlyMirror['cycle_label'] }}</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('financialMirrorModal')">&times;</button>
+        </div>
+
+        <div class="mirror-modal-body" style="padding: 1.25rem; overflow-y: auto; max-height: calc(85vh - 120px);">
+            <!-- Score & Health Banner -->
+            <div class="mirror-score-banner">
+                <div class="score-circle-box">
+                    <span class="score-number">{{ $monthlyMirror['score'] }}</span>
+                    <span class="score-max">/100</span>
+                </div>
+                <div class="score-info-col">
+                    <div class="score-grade-badge {{ $monthlyMirror['grade']['class'] }}">
+                        {{ $monthlyMirror['grade']['label'] }}
+                    </div>
+                    <h4 class="score-title">التقييم الشامل للصحة المالية للدورة</h4>
+                    <p class="score-desc">
+                        @if($monthlyMirror['is_spending_lower'])
+                            أداء مالي استثنائي! أحكمت سيطرتك على المصاريف وحققت تراجعاً ملحوظاً في معدل الاستهلاك مقارنة بالدورة الماضية.
+                        @else
+                            دورة نشطة مع فرص واعدة لضبط بعض الأظرف وتعزيز معدلات الفوائض التلقائية.
+                        @endif
+                    </p>
+                </div>
+            </div>
+
+            <!-- Month-over-Month Comparison & Top Envelope Grid -->
+            <div class="mirror-key-metrics-grid">
+                <!-- Comparison Card -->
+                <div class="mirror-metric-card">
+                    <div class="metric-card-top">
+                        <span class="metric-icon">📊</span>
+                        <span class="metric-badge {{ $monthlyMirror['is_spending_lower'] ? 'badge-good' : 'badge-alert' }}">
+                            {{ $monthlyMirror['is_spending_lower'] ? '📉 أقل بـ ' . abs($monthlyMirror['diff_percent']) . '%' : '📈 زيادة ' . $monthlyMirror['diff_percent'] . '%' }}
+                        </span>
+                    </div>
+                    <h5 class="metric-card-title">مقارنة هذا الشهر بالشهر السابق</h5>
+                    <div class="metric-compare-values">
+                        <div>
+                            <span>الشهر الحالي:</span>
+                            <strong>{{ number_format($monthlyMirror['curr_expenses'], 0) }} ₪</strong>
+                        </div>
+                        <div class="compare-divider">vs</div>
+                        <div>
+                            <span>الشهر السابق:</span>
+                            <strong>{{ number_format($monthlyMirror['prev_expenses'], 0) }} ₪</strong>
+                        </div>
+                    </div>
+                    <p class="metric-sub-note">
+                        @if($monthlyMirror['is_spending_lower'])
+                            وفرت <strong>{{ number_format(abs($monthlyMirror['diff_amount']), 0) }} ₪</strong> مقارنة بمصاريف دورتك السابقة!
+                        @else
+                            ارتفعت مصاريفك بفارق <strong>{{ number_format($monthlyMirror['diff_amount'], 0) }} ₪</strong> عن الدورة السابقة.
+                        @endif
+                    </p>
+                </div>
+
+                <!-- Top Envelope Drain Card -->
+                <div class="mirror-metric-card">
+                    <div class="metric-card-top">
+                        <span class="metric-icon">🛒</span>
+                        <span class="metric-badge badge-warning">أكثر ظرف استنزافاً</span>
+                    </div>
+                    <h5 class="metric-card-title">أكثر ظرف استنزف ميزانيتك</h5>
+                    @if($monthlyMirror['top_envelope'])
+                        <div class="top-env-showcase">
+                            <span class="env-big-icon">{{ $monthlyMirror['top_envelope']->icon ?? '✉️' }}</span>
+                            <div class="env-showcase-text">
+                                <strong class="env-name">{{ $monthlyMirror['top_envelope']->name }}</strong>
+                                <span class="env-drain-amt">{{ number_format($monthlyMirror['top_envelope_spent'], 0) }} ₪</span>
+                            </div>
+                        </div>
+                        <p class="metric-sub-note">
+                            يمثل <strong>{{ $monthlyMirror['top_envelope_percent'] }}%</strong> من إجمالي جميع مصاريفك في هذه الدورة!
+                        </p>
+                    @else
+                        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 1rem;">لم يتم تسجيل مصاريف على الأظرف بعد.</p>
+                    @endif
+                </div>
+
+                <!-- Surplus Harvested Card -->
+                <div class="mirror-metric-card">
+                    <div class="metric-card-top">
+                        <span class="metric-icon">💰</span>
+                        <span class="metric-badge badge-good">إجمالي الفوائض المحققة</span>
+                    </div>
+                    <h5 class="metric-card-title">كم وفّرت من الفوائض؟</h5>
+                    <div class="harvest-hero-amount">
+                        <span>{{ number_format($monthlyMirror['total_surplus_saved'], 0) }}</span>
+                        <small>₪</small>
+                    </div>
+                    <p class="metric-sub-note">
+                        مبالغ فائضة تم اقتناصها بنهاية الأيام وتحويلها لدعم سداد الديون ({{ number_format($monthlyMirror['debt_harvested'], 0) }} ₪) وحصالات الأهداف ({{ number_format($monthlyMirror['goal_harvested'] + $monthlyMirror['manual_savings'], 0) }} ₪).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Highs and Lows (أجمل وأصعب لحظات الشهر) -->
+            <div class="mirror-moments-section">
+                <h5 class="moments-section-title">⚡ أجمل وأصعب لحظات دورتك المالية</h5>
+                <div class="moments-grid">
+                    <!-- Hardest Moment -->
+                    <div class="moment-card moment-hard">
+                        <div class="moment-badge">⚡ أثقل أيام الصرف</div>
+                        @if($monthlyMirror['highest_day'])
+                            <div class="moment-date">{{ $monthlyMirror['highest_day']['formatted_date'] }}</div>
+                            <div class="moment-amount">{{ number_format($monthlyMirror['highest_day']['amount'], 0) }} ₪</div>
+                            <p class="moment-note">{{ $monthlyMirror['highest_day']['note'] }} ({{ $monthlyMirror['highest_day']['tx_count'] }} حركات)</p>
+                        @else
+                            <p style="color: #94a3b8; font-size: 0.85rem;">لا توجد مصاريف مسجلة.</p>
+                        @endif
+                    </div>
+
+                    <!-- Best Moment -->
+                    <div class="moment-card moment-best">
+                        <div class="moment-badge">✨ الأيام البيضاء (صفر مصاريف)</div>
+                        <div class="moment-date">{{ $monthlyMirror['zero_spend_days_count'] }} أيام</div>
+                        <div class="moment-amount">0 ₪</div>
+                        <p class="moment-note">أيام مرت دون أن تلمس محفظتك أو تصرف شيكلاً واحداً! إنجاز انضباطي عالي.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strengths & Recommendations -->
+            <div class="mirror-strengths-section">
+                <h5 class="moments-section-title">💪 نقاط قوتك وتوصيات الذكاء المالي</h5>
+                <div class="strengths-list">
+                    @foreach($monthlyMirror['strengths'] as $st)
+                        <div class="strength-item">
+                            <span class="st-icon">{{ $st['icon'] }}</span>
+                            <div class="st-text">
+                                <strong>{{ $st['title'] }}</strong>
+                                <p>{{ $st['desc'] }}</p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="ai-recommendations-box">
+                    <div class="ai-box-title">
+                        <span>🤖</span>
+                        <span>توصيات الذكاء الاصطناعي للدورة القادمة:</span>
+                    </div>
+                    <ul class="ai-recs-list">
+                        @foreach($monthlyMirror['recommendations'] as $rec)
+                            <li>{{ $rec }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -5719,6 +6010,50 @@
                 osc.stop(audioCtx.currentTime + idx * 0.09 + 0.4);
             });
         } catch(e) {}
+    };
+
+    // ==========================================
+    // CASHFLOW RUNWAY RADAR & SIMULATOR
+    // ==========================================
+    window.openRunwayRadarModal = function() {
+        openModal('runwayRadarModal');
+        const slider = document.getElementById('simDailySlider');
+        if (slider) {
+            updateRunwaySimulation(slider.value);
+        }
+    };
+
+    window.updateRunwaySimulation = function(val) {
+        const burn = parseFloat(val) || 1;
+        const spendable = {{ (float) $cashflowRunway['app_spendable_balance'] }};
+        const daysRemaining = {{ (int) $cashflowRunway['days_remaining'] }};
+
+        const displayEl = document.getElementById('simDailyValDisplay');
+        if (displayEl) displayEl.textContent = Math.round(burn);
+
+        const daysLeft = Math.floor(spendable / burn);
+        const daysEl = document.getElementById('simDaysResult');
+        if (daysEl) daysEl.textContent = `${daysLeft} يوماً`;
+
+        const today = new Date();
+        today.setDate(today.getDate() + daysLeft);
+        const day = today.getDate();
+        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const month = monthNames[today.getMonth()] || (today.getMonth() + 1);
+        
+        const dateEl = document.getElementById('simDateResult');
+        if (dateEl) dateEl.textContent = `يوم ${day} ${month}`;
+
+        const statusEl = document.getElementById('simStatusResult');
+        if (statusEl) {
+            if (daysLeft < daysRemaining) {
+                const gap = daysRemaining - daysLeft;
+                statusEl.innerHTML = `<span style="color:#ef4444; font-weight:800;">⚠️ عجز قبل الراتب بـ ${gap} أيام</span>`;
+            } else {
+                const surplus = Math.max(0, Math.round(spendable - (burn * daysRemaining)));
+                statusEl.innerHTML = `<span style="color:#10b981; font-weight:800;">🟢 أمان وفائض متوقع +${surplus} ₪</span>`;
+            }
+        }
     };
 </script>
 @endpush

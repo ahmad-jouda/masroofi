@@ -13,6 +13,7 @@ use App\Models\UserSetting;
 use App\Models\Wishlist;
 use App\Services\CurrencyService;
 use App\Services\DebtSurplusHarvestService;
+use App\Services\FinancialForecastService;
 use App\Services\GamificationService;
 use App\Services\GoalSurplusHarvestService;
 use Carbon\Carbon;
@@ -378,6 +379,23 @@ class DashboardController extends Controller
             (float) $todayExpenses
         );
 
+        // AI & Forecasts: Cashflow Runway Radar & Monthly Mirror Review
+        $cashflowRunway = FinancialForecastService::calculateCashflowRunway(
+            $workspaceId,
+            (float) $appSpendableBalance,
+            (float) $totalExpenses,
+            (int) $daysElapsed,
+            (int) $daysRemaining,
+            $cycleEnd,
+            (float) $safeDaily
+        );
+
+        $monthlyMirror = FinancialForecastService::generateMonthlyMirrorReport(
+            $workspaceId,
+            $cycleStart,
+            $cycleEnd
+        );
+
         return view('dashboard', compact(
             'activeTab',
             'settings',
@@ -450,7 +468,9 @@ class DashboardController extends Controller
             'boughtGroceryCount',
             'estimatedGroceryTotal',
             'groceryCategories',
-            'gamification'
+            'gamification',
+            'cashflowRunway',
+            'monthlyMirror'
         ));
     }
 }
