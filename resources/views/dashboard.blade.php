@@ -82,6 +82,37 @@
             </div>
         </div>
 
+        <!-- STREAK & ACHIEVEMENTS HERO BADGE -->
+        <div class="hero-gamification-container">
+            <button type="button" class="streak-gamification-pill {{ $gamification['current_streak'] > 0 ? 'is-flaming' : 'is-idle' }}" onclick="openAchievementsModal()" title="انقر لعرض سلسلة الالتزام ولوحة الميداليات والإنجازات">
+                <span class="streak-flame-wrapper">
+                    <span class="streak-flame-core">🔥</span>
+                </span>
+                <span class="streak-pill-text-col">
+                    <span class="streak-pill-heading">{{ $gamification['streak_title'] }}</span>
+                    <span class="streak-pill-sub">
+                        @if($gamification['current_streak'] > 0)
+                            سلسلة انضباط نشطة • انقر لعرض الميداليات ولوحة الشرف 🏆
+                        @else
+                            لا تتجاوز مخصصك اليوم لتبدأ سلسلتك النارية وتفتح الميداليات 🏅
+                        @endif
+                    </span>
+                </span>
+                <span class="streak-pill-medals-badge">
+                    <span class="badge-icon">🎖️</span>
+                    <span>{{ $gamification['unlocked_medals_count'] }}/{{ $gamification['total_medals_count'] }} وسام</span>
+                </span>
+            </button>
+        </div>
+
+        @if($gamification['has_celebration'] && $gamification['top_celebration'])
+            <div class="celebration-hero-alert" onclick="openAchievementsModal()" title="إنجاز مالي جديد! اضغط للاحتفال">
+                <span class="celebration-badge-anim">✨ إنجاز مالي مميز!</span>
+                <span class="celebration-badge-title">{{ $gamification['top_celebration']['icon'] }} {{ $gamification['top_celebration']['title'] }}</span>
+                <span class="celebration-badge-btn">🎉 فتح لوحة الاحتفال</span>
+            </div>
+        @endif
+
         <div class="safe-card-body">
             <div class="safe-number-col">
                 <div class="daily-hero-badge-wrap">
@@ -1272,6 +1303,10 @@
             <a href="{{ route('transactions.exportPdf') }}" target="_blank" class="btn-ledger-pdf" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.62rem 1.15rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(37, 99, 235, 0.22)); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.45); border-radius: 12px; font-weight: 800; font-size: 0.88rem; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);" title="تصدير كشف حساب وحركات جدول المعاملات كتقرير PDF رسمي قابل للطباعة والحفظ">
                 <span style="font-size: 1rem;">📄</span>
                 <span>تصدير تقرير PDF</span>
+            </a>
+            <a href="{{ route('transactions.exportExcel') }}" class="btn-ledger-excel" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.62rem 1.15rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(5, 150, 105, 0.22)); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 12px; font-weight: 800; font-size: 0.88rem; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);" title="تنزيل جدول المعاملات كملف إكسل (Excel / CSV) لترتيبها ومراجعتها على الكمبيوتر">
+                <span style="font-size: 1rem;">📊</span>
+                <span>تصدير إكسل (Excel)</span>
             </a>
             <button class="btn-primary" onclick="openTxModal('expense')">
                 ➕ إضافة حركة جديدة
@@ -3453,6 +3488,109 @@
     </div>
 </div>
 
+<!-- 18. Financial Gamification, Streaks & Achievements Modal -->
+<div class="modal-backdrop hidden" id="achievementsModal">
+    <div class="modal-card modal-card-lg achievements-modal-card">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <span class="achievements-header-flame">🔥</span>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff;">سلسلة الالتزام المالي والأوسمة</h3>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.82rem; color: #94a3b8;">لوحة الشرف والانضباط المالي لتحفيزك يومياً على الادخار وسداد الالتزامات</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('achievementsModal')">&times;</button>
+        </div>
+
+        <div class="achievements-modal-body" style="padding: 1.2rem; overflow-y: auto; max-height: calc(85vh - 120px);">
+            <!-- Streak Hero Detail Card -->
+            <div class="streak-detail-banner {{ $gamification['current_streak'] > 0 ? 'active-streak' : 'dormant-streak' }}">
+                <div class="streak-detail-visual">
+                    <div class="flame-halo">
+                        <span class="big-flame">🔥</span>
+                    </div>
+                    <div class="streak-counter-wrap">
+                        <span class="streak-number">{{ $gamification['current_streak'] }}</span>
+                        <span class="streak-unit">{{ $gamification['streak_days_label'] }}</span>
+                    </div>
+                </div>
+                <div class="streak-detail-info">
+                    <h4 class="streak-info-title">{{ $gamification['streak_title'] }}</h4>
+                    <p class="streak-info-desc">
+                        @if($gamification['current_streak'] > 0)
+                            أنت في سلسلة مميزة من الانضباط المالي! لم تتجاوز مخصصك اليومي، والفوائض تخدم أهدافك وتسدد ديونك بذكاء.
+                        @else
+                            اليوم فرصة جديدة لإشعال السلسلة! حافظ على مصروفك اليوم ضمن حدود <strong>{{ number_format($gamification['today_allowance'], 0) }} {{ $settings->currency ?? 'ILS' }}</strong> وستنطلق شرارة التزامك!
+                        @endif
+                    </p>
+                    <div class="streak-daily-status-row">
+                        <span class="status-pill {{ $gamification['is_today_safe'] ? 'pill-safe' : 'pill-over' }}">
+                            {{ $gamification['is_today_safe'] ? '✅ يومية اليوم تحت السيطرة' : '⚠️ تم تجاوز اليومية اليوم' }}
+                        </span>
+                        <span class="status-pill pill-medals-unlocked">
+                            🏅 {{ $gamification['unlocked_medals_count'] }} من أصل {{ $gamification['total_medals_count'] }} أوسمة مفتوحة
+                        </span>
+                    </div>
+                </div>
+                <div class="streak-detail-action">
+                    <button type="button" class="btn-fireworks-celebrate" onclick="triggerCelebrationConfetti()">
+                        <span>🎉 احتفل بإنجازاتك</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Milestones & Celebrations Highlights (if any) -->
+            @if($gamification['has_celebration'])
+                <div class="active-celebrations-block" style="margin-top: 1.2rem;">
+                    <div class="achievements-section-title">
+                        <span>✨</span>
+                        <span>إنجازات قريبة واحتفالات نشطة</span>
+                    </div>
+                    <div class="celebrations-cards-grid">
+                        @foreach($gamification['celebrations'] as $cel)
+                            <div class="celebration-mini-card">
+                                <div class="cel-card-icon">{{ $cel['icon'] }}</div>
+                                <div class="cel-card-body">
+                                    <strong class="cel-card-title">{{ $cel['title'] }}</strong>
+                                    <p class="cel-card-msg">{{ $cel['message'] }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Medals Showcase Grid -->
+            <div class="medals-showcase-section" style="margin-top: 1.5rem;">
+                <div class="achievements-section-title">
+                    <span>🎖️</span>
+                    <span>لوحة الميداليات والأوسمة التكريمية</span>
+                </div>
+
+                <div class="medals-grid">
+                    @foreach($gamification['medals'] as $medal)
+                        <div class="medal-card {{ $medal['unlocked'] ? 'medal-unlocked level-' . $medal['level'] : 'medal-locked' }}">
+                            <div class="medal-top-row">
+                                <span class="medal-icon-badge">{{ $medal['icon'] }}</span>
+                                <span class="medal-status-tag {{ $medal['unlocked'] ? 'tag-unlocked' : 'tag-locked' }}">
+                                    {{ $medal['badge'] }}
+                                </span>
+                            </div>
+                            <h5 class="medal-title">{{ $medal['title'] }}</h5>
+                            <p class="medal-desc">{{ $medal['description'] }}</p>
+
+                            <!-- Progress Bar -->
+                            <div class="medal-progress-wrap">
+                                <div class="medal-progress-bar" style="width: {{ $medal['progress'] }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -5512,6 +5650,74 @@
             }
 
             updateGroceryDOMStats();
+        } catch(e) {}
+    };
+
+    // ==========================================
+    // GAMIFICATION, STREAKS & ACHIEVEMENTS MODAL
+    // ==========================================
+    window.openAchievementsModal = function() {
+        openModal('achievementsModal');
+        @if($gamification['has_celebration'])
+            setTimeout(() => triggerCelebrationConfetti(), 350);
+        @endif
+    };
+
+    window.triggerCelebrationConfetti = function() {
+        if (typeof confetti === 'function') {
+            const count = 200;
+            const defaults = { origin: { y: 0.65 } };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
+            }
+
+            fire(0.25, {
+                spread: 30,
+                startVelocity: 55,
+                colors: ['#f59e0b', '#fbbf24', '#ef4444', '#10b981', '#3b82f6']
+            });
+            fire(0.2, {
+                spread: 60,
+            });
+            fire(0.35, {
+                spread: 100,
+                decay: 0.91,
+                scalar: 0.8
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 25,
+                decay: 0.92,
+                colors: ['#ffd700', '#ffae00', '#ffffff', '#38bdf8']
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 45,
+            });
+        }
+
+        // Play pleasant celebration audio fanfare using Web Audio API
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.09);
+                gain.gain.setValueAtTime(0.18, audioCtx.currentTime + idx * 0.09);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.09 + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + idx * 0.09);
+                osc.stop(audioCtx.currentTime + idx * 0.09 + 0.4);
+            });
         } catch(e) {}
     };
 </script>

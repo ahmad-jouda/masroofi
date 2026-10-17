@@ -349,14 +349,12 @@ class TransactionController extends Controller
     }
 
     /**
-     * Export Transactions Ledger report as printable PDF statement view.
+     * Build filtered transactions dataset shared between PDF and Excel exports.
+     *
+     * @return array<string, mixed>
      */
-    public function exportPdf(Request $request)
+    private function buildFilteredTransactionsData(Request $request, ?Workspace $workspace, UserSetting $settings): array
     {
-        $workspaceId = $request->user()?->workspace_id ?? 1;
-        $workspace = $request->user()?->workspace ?? Workspace::find($workspaceId);
-        $settings = UserSetting::firstOrCreate(['workspace_id' => $workspaceId]);
-
         $period = $request->query('period', 'current_cycle');
         $type = $request->query('type', 'all');
         $envelopeId = $request->query('envelope_id');
@@ -424,23 +422,136 @@ class TransactionController extends Controller
         $envelopes = Envelope::all();
         $members = $workspace ? $workspace->users()->get() : collect([$request->user()]);
 
-        return view('reports.ledger-pdf', compact(
-            'transactions',
-            'workspace',
-            'settings',
-            'period',
-            'type',
-            'envelopeId',
-            'userId',
-            'fromDate',
-            'toDate',
-            'periodLabel',
-            'totalExpenses',
-            'totalIncome',
-            'totalSavings',
-            'net',
-            'envelopes',
-            'members'
-        ));
+        return [
+            'transactions' => $transactions,
+            'workspace' => $workspace,
+            'settings' => $settings,
+            'period' => $period,
+            'type' => $type,
+            'envelopeId' => $envelopeId,
+            'userId' => $userId,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'periodLabel' => $periodLabel,
+            'totalExpenses' => $totalExpenses,
+            'totalIncome' => $totalIncome,
+            'totalSavings' => $totalSavings,
+            'net' => $net,
+            'envelopes' => $envelopes,
+            'members' => $members,
+            'currency' => $settings->currency ?? 'ILS',
+        ];
+    }
+
+    /**
+     * Export Transactions Ledger report as printable PDF statement view.
+     */
+    public function exportPdf(Request $request)
+    {
+        $workspaceId = $request->user()?->workspace_id ?? 1;
+        $workspace = $request->user()?->workspace ?? Workspace::find($workspaceId);
+        $settings = UserSetting::firstOrCreate(['workspace_id' => $workspaceId]);
+
+        $data = $this->buildFilteredTransactionsData($request, $workspace, $settings);
+
+        return view('reports.ledger-pdf', $data);
+    }
+
+    /**
+     * Export Transactions Ledger report as Excel-compatible CSV with UTF-8 BOM.
+     */
+    public function exportExcel(Request $request)
+    {
+        $workspaceId = $request->user()?->workspace_id ?? 1;
+        $workspace = $request->user()?->workspace ?? Workspace::find($workspaceId);
+        $settings = UserSetting::firstOrCreate(['workspace_id' => $workspaceId]);
+
+        $reportData = $this->buildFilteredTransactionsData($request, $workspace, $settings);
+        $transactions = $reportData['transactions'];
+        $currency = $reportData['currency'];
+        $periodLabel = $reportData['periodLabel'];
+
+        $filename = 'masroofi_transactions_'.now()->format('Y-m-d_His').'.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($transactions, $reportData, $currency, $periodLabel, $workspace) {
+            $handle = fopen('php://output', 'w');
+
+            // Write UTF-8 BOM for Microsoft Excel on Windows to properly display Arabic letters
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            // Meta Info Header
+            fputcsv($handle, ['💎 مصروفي برو - كشف سجل المعاملات المالية']);
+            fputcsv($handle, ['نطاق التقرير:', $periodLabel]);
+            fputcsv($handle, ['المحفظة:', $workspace->name ?? 'المحفظة العائلية']);
+            fputcsv($handle, ['تاريخ واستخراج الملف:', now()->format('Y-m-d H:i')]);
+            fputcsv($handle, ['العملة المعتمدة:', $currency]);
+            fputcsv($handle, []); // Blank line
+
+            // Column Headers
+            fputcsv($handle, [
+                'المعرف',
+                'التاريخ',
+                'نوع الحركة',
+                "المبلغ ({$currency})",
+                'الظرف / الحصالة',
+                'وسيلة الدفع',
+                'البيان والملاحظات',
+                'المسجّل بواسطة',
+            ]);
+
+            // Transaction Data Rows
+            foreach ($transactions as $tx) {
+                $typeLabel = match ($tx->type) {
+                    'expense' => 'مصروف',
+                    'income' => 'دخل إضافي',
+                    'savings' => 'تحويل لحصالة',
+                    default => $tx->type,
+                };
+
+                $categoryLabel = ($tx->type === 'savings' && $tx->goal)
+                    ? '🎯 '.$tx->goal->name
+                    : ($tx->envelope ? $tx->envelope->name : 'عام');
+
+                $paymentMethodLabel = match ($tx->payment_method) {
+                    'cash' => 'كاش',
+                    'transfer' => 'تطبيق بنكي',
+                    'card' => 'بطاقة',
+                    'credit' => 'دين / ذمم',
+                    default => $tx->payment_method ?: 'غير محدد',
+                };
+
+                fputcsv($handle, [
+                    '#'.$tx->id,
+                    $tx->date ? Carbon::parse($tx->date)->format('Y-m-d') : '',
+                    $typeLabel,
+                    number_format((float) $tx->amount, 2, '.', ''),
+                    $categoryLabel,
+                    $paymentMethodLabel,
+                    $tx->note ?: ($tx->description ?: '—'),
+                    $tx->user?->name ?: 'الكل',
+                ]);
+            }
+
+            // Summary Footer Rows
+            fputcsv($handle, []);
+            fputcsv($handle, ['--- ملخص الحركات المالية ---']);
+            fputcsv($handle, ['إجمالي المصروفات', number_format($reportData['totalExpenses'], 2, '.', '')." {$currency}"]);
+            fputcsv($handle, ['إجمالي الدخل الإضافي', number_format($reportData['totalIncome'], 2, '.', '')." {$currency}"]);
+            fputcsv($handle, ['إجمالي التحويل للحصالات', number_format($reportData['totalSavings'], 2, '.', '')." {$currency}"]);
+            fputcsv($handle, ['صافي التدفق المالي', number_format($reportData['net'], 2, '.', '')." {$currency}"]);
+            fputcsv($handle, ['إجمالي عدد الحركات', count($transactions)]);
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

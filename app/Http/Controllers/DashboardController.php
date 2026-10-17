@@ -13,6 +13,7 @@ use App\Models\UserSetting;
 use App\Models\Wishlist;
 use App\Services\CurrencyService;
 use App\Services\DebtSurplusHarvestService;
+use App\Services\GamificationService;
 use App\Services\GoalSurplusHarvestService;
 use Carbon\Carbon;
 
@@ -369,6 +370,14 @@ class DashboardController extends Controller
             $activeTab = 'tab-dashboard';
         }
 
+        // Gamification, Streaks & Achievements
+        $gamification = GamificationService::getGamificationData(
+            $workspaceId,
+            (float) $safeDaily,
+            (float) $todayBaseAllowance,
+            (float) $todayExpenses
+        );
+
         return view('dashboard', compact(
             'activeTab',
             'settings',
@@ -440,7 +449,8 @@ class DashboardController extends Controller
             'pendingGroceryCount',
             'boughtGroceryCount',
             'estimatedGroceryTotal',
-            'groceryCategories'
+            'groceryCategories',
+            'gamification'
         ));
     }
 }

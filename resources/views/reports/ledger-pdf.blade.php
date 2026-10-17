@@ -432,6 +432,10 @@
                 <span>🖨️</span>
                 <span>طباعة / حفظ بتنسيق PDF</span>
             </button>
+            <a href="{{ route('transactions.exportExcel', request()->all()) }}" class="btn-action" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3)); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.5);" title="تنزيل جدول المعاملات كملف إكسل (Excel / CSV) بنفس الفلاتر الحالية">
+                <span>📊</span>
+                <span>تصدير إكسل (Excel)</span>
+            </a>
         </div>
     </div>
 

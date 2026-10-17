@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
 
     // Transactions
     Route::get('/ledger/export/pdf', [TransactionController::class, 'exportPdf'])->name('transactions.exportPdf');
+    Route::get('/ledger/export/excel', [TransactionController::class, 'exportExcel'])->name('transactions.exportExcel');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
     Route::put('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
     Route::post('/transactions/sync', [TransactionController::class, 'syncOffline'])->name('transactions.sync');

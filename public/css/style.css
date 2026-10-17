@@ -6808,5 +6808,512 @@ input.flatpickr-custom-input {
   color: #f1f5f9 !important;
 }
 
+/* =========================================================
+   GAMIFICATION, STREAKS & ACHIEVEMENTS SYSTEM
+   ========================================================= */
+
+/* Hero Section Streak Pill */
+.hero-gamification-container {
+  margin: 0.85rem 0 0.5rem;
+  width: 100%;
+}
+
+.streak-gamification-pill {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.75rem 1.15rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(239, 68, 68, 0.14) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  cursor: pointer;
+  text-align: right;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.streak-gamification-pill:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(239, 68, 68, 0.22) 100%);
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
+}
+
+.streak-gamification-pill:active {
+  transform: translateY(1px);
+}
+
+.streak-gamification-pill.is-idle {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.08) 0%, rgba(100, 116, 139, 0.1) 100%);
+  border-color: rgba(148, 163, 184, 0.25);
+  box-shadow: none;
+}
+
+.streak-flame-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+  flex-shrink: 0;
+}
+
+.streak-gamification-pill.is-idle .streak-flame-wrapper {
+  background: rgba(148, 163, 184, 0.15);
+  box-shadow: none;
+}
+
+.streak-flame-core {
+  font-size: 1.5rem;
+  display: inline-block;
+  animation: flamePulse 1.8s infinite ease-in-out;
+}
+
+.streak-gamification-pill.is-idle .streak-flame-core {
+  animation: none;
+  filter: grayscale(0.7);
+}
+
+@keyframes flamePulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.15) rotate(-6deg);
+  }
+  75% {
+    transform: scale(1.15) rotate(6deg);
+  }
+}
+
+.streak-pill-text-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.streak-pill-heading {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.streak-pill-sub {
+  font-size: 0.77rem;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.streak-pill-medals-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fbbf24;
+  font-size: 0.82rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Celebration Alert Card */
+.celebration-hero-alert {
+  margin-top: 0.65rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(59, 130, 246, 0.16) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: pulseCelebration 3s infinite ease-in-out;
+}
+
+.celebration-hero-alert:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+  transform: translateY(-1px);
+}
+
+@keyframes pulseCelebration {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+}
+
+.celebration-badge-anim {
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: #10b981;
+  color: #fff;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.celebration-badge-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #34d399;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.celebration-badge-btn {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #93c5fd;
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+
+/* Modal Styling */
+.achievements-modal-card {
+  max-width: 780px !important;
+  width: 95% !important;
+  background: linear-gradient(145deg, #131b2e, #0d121f) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 35px rgba(245, 158, 11, 0.15) !important;
+}
+
+.achievements-header-flame {
+  font-size: 1.8rem;
+  display: inline-block;
+  animation: flamePulse 1.8s infinite ease-in-out;
+}
+
+/* Streak Detail Banner inside Modal */
+.streak-detail-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  padding: 1.25rem 1.4rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  flex-wrap: wrap;
+}
+
+.streak-detail-visual {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.flame-halo {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+}
+
+.big-flame {
+  font-size: 2.2rem;
+  animation: flamePulse 1.8s infinite ease-in-out;
+}
+
+.streak-counter-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.streak-number {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  font-family: var(--font-numbers);
+  text-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.streak-unit {
+  font-size: 0.82rem;
+  color: #fde68a;
+  font-weight: 700;
+}
+
+.streak-detail-info {
+  flex: 1;
+  min-width: 240px;
+}
+
+.streak-info-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.streak-info-desc {
+  margin: 0 0 0.65rem;
+  font-size: 0.84rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.streak-daily-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  padding: 0.3rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.status-pill.pill-safe {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.status-pill.pill-over {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.status-pill.pill-medals-unlocked {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.btn-fireworks-celebrate {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-fireworks-celebrate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.55);
+}
+
+/* Celebrations Section */
+.achievements-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin-bottom: 0.75rem;
+}
+
+.celebrations-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.celebration-mini-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.cel-card-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.cel-card-body {
+  flex: 1;
+}
+
+.cel-card-title {
+  font-size: 0.88rem;
+  color: #34d399;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.cel-card-msg {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Medals Showcase Grid */
+.medals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.85rem;
+}
+
+.medal-card {
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.medal-card.medal-unlocked {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.medal-card.medal-unlocked.level-gold {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.04) 100%);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.12);
+}
+
+.medal-card.medal-unlocked.level-silver {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.08) 0%, rgba(100, 116, 139, 0.04) 100%);
+}
+
+.medal-card.medal-unlocked.level-platinum {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(14, 165, 233, 0.04) 100%);
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.12);
+}
+
+.medal-card.medal-unlocked.level-diamond {
+  border-color: rgba(168, 85, 247, 0.45);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(147, 51, 234, 0.04) 100%);
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.12);
+}
+
+.medal-card.medal-locked {
+  opacity: 0.65;
+  filter: grayscale(0.6);
+}
+
+.medal-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.medal-icon-badge {
+  font-size: 1.7rem;
+}
+
+.medal-status-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.medal-status-tag.tag-unlocked {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.medal-status-tag.tag-locked {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.medal-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.medal-desc {
+  margin: 0 0 0.75rem;
+  font-size: 0.77rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.medal-progress-wrap {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.medal-progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.4s ease;
+}
+
+.medal-card.level-gold .medal-progress-bar {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.medal-card.level-diamond .medal-progress-bar {
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+}
+
+/* Excel Export Button in Ledger Table */
+.btn-ledger-excel:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.26), rgba(5, 150, 105, 0.32)) !important;
+  border-color: rgba(16, 185, 129, 0.7) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+
 
 
