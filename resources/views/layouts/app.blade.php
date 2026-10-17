@@ -1479,6 +1479,11 @@
         </div>
     </div>
 
+    @auth
+        <!-- 🤖 Interactive AI Financial Advisor Modal & Floating Trigger -->
+        @include('partials.ai-advisor-modal')
+    @endauth
+
     <script>
         window.togglePasswordVisibility = function(inputId, btn) {
             const input = typeof inputId === 'string' ? document.getElementById(inputId) : inputId;

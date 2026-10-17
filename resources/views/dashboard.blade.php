@@ -159,6 +159,26 @@
             </div>
         </div>
 
+        <!-- 🤖 AI FINANCIAL ADVISOR HERO STRIP -->
+        <div class="ai-advisor-hero-strip" onclick="openAiAdvisorModal('هل ميزانيتي تسمح بشراء شاشة بـ 800 شيكل هذا الأسبوع؟')" title="انقر لسؤال المستشار المالي الذكي">
+            <div class="ai-strip-icon-box">
+                <span class="ai-strip-icon">🤖</span>
+                <span class="ai-strip-pulse"></span>
+            </div>
+            <div class="ai-strip-info">
+                <div class="ai-strip-header">
+                    <strong class="ai-strip-tag">🤖 مستشار الذكاء الاصطناعي التفاعلي (AI Financial Advisor)</strong>
+                    <span class="ai-strip-badge">تحليل فوري لميزانيتك 🧠</span>
+                </div>
+                <p class="ai-strip-msg">
+                    اسألني بالعامية: <strong>«هل ميزانيتي تسمح بشراء شاشة بـ 800 شيكل هذا الأسبوع؟»</strong> لأحلل مدخراتك ومصاريفك وأعطيك قراراً دقيقاً ومدروساً.
+                </p>
+            </div>
+            <div class="ai-strip-action">
+                <button type="button" class="ai-btn-pill" onclick="event.stopPropagation(); openAiAdvisorModal();" title="فتح شات المستشار المالي">اسأل المستشار الآن ◀</button>
+            </div>
+        </div>
+
         <div class="safe-card-body">
             <div class="safe-number-col">
                 <div class="daily-hero-badge-wrap">

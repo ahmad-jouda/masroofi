@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AiAdvisorController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PinController;
@@ -135,6 +136,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/push/unsubscribe', [PushNotificationController::class, 'unsubscribe'])->name('push.unsubscribe');
     Route::post('/push/test', [PushNotificationController::class, 'sendTestPush'])->name('push.test');
     Route::post('/push/evening-reminder', [PushNotificationController::class, 'checkEveningSurplusReminder'])->name('push.evening-reminder');
+
+    // AI Financial Advisor Chat (مستشار الذكاء الاصطناعي التفاعلي)
+    Route::get('/ai-advisor/messages', [AiAdvisorController::class, 'getMessages'])->name('ai-advisor.messages');
+    Route::post('/ai-advisor/chat', [AiAdvisorController::class, 'sendMessage'])->name('ai-advisor.chat');
+    Route::post('/ai-advisor/clear', [AiAdvisorController::class, 'clearChat'])->name('ai-advisor.clear');
 
     // ==============================================
     // ADMIN ONLY ROUTES (User & Workspace Management)

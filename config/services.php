@@ -41,4 +41,10 @@ return [
         'vapid_subject' => env('VAPID_SUBJECT', env('APP_URL', 'mailto:admin@masroofi.com')),
     ],
 
+    'ai_advisor' => [
+        'gemini_key' => env('GEMINI_API_KEY'),
+        'openai_key' => env('OPENAI_API_KEY'),
+        'provider' => env('AI_ADVISOR_PROVIDER', 'auto'),
+    ],
+
 ];
