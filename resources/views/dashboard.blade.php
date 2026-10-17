@@ -159,23 +159,41 @@
             </div>
         </div>
 
-        <!-- 🤖 AI FINANCIAL ADVISOR HERO STRIP -->
+        <!-- ✨ AI FINANCIAL ADVISOR HERO STRIP -->
         <div class="ai-advisor-hero-strip" onclick="openAiAdvisorModal('هل ميزانيتي تسمح بشراء شاشة بـ 800 شيكل هذا الأسبوع؟')" title="انقر لسؤال المستشار المالي الذكي">
             <div class="ai-strip-icon-box">
-                <span class="ai-strip-icon">🤖</span>
+                <svg class="ai-sparkle-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C12 2 13.5 7.5 15.5 9.5C17.5 11.5 23 12 23 12C23 12 17.5 12.5 15.5 14.5C13.5 16.5 12 22 12 22C12 22 10.5 16.5 8.5 14.5C6.5 12.5 1 12 1 12C1 12 6.5 11.5 8.5 9.5C10.5 7.5 12 2 12 2Z" fill="url(#aiSparkleGradHero)" stroke="rgba(255,255,255,0.7)" stroke-width="0.75" stroke-linejoin="round"/>
+                    <path d="M19.5 2C19.5 2 20.2 4.5 21 5.3C21.8 6.1 24 6.5 24 6.5C24 6.5 21.8 6.9 21 7.7C20.2 8.5 19.5 11 19.5 11C19.5 11 18.8 8.5 18 7.7C17.2 6.9 15 6.5 15 6.5C15 6.5 17.2 6.1 18 5.3C18.8 4.5 19.5 2 19.5 2Z" fill="#38bdf8"/>
+                    <path d="M4.5 16C4.5 16 5.1 17.8 5.7 18.4C6.3 19 8 19.3 8 19.3C8 19.3 6.3 19.6 5.7 20.2C5.1 20.8 4.5 22.5 4.5 22.5C4.5 22.5 3.9 20.8 3.3 20.2C2.7 19.6 1 19.3 1 19.3C1 19.3 2.7 19 3.3 18.4C3.9 17.8 4.5 16 4.5 16Z" fill="#f43f5e"/>
+                    <defs>
+                        <linearGradient id="aiSparkleGradHero" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#38bdf8"/>
+                            <stop offset="0.4" stop-color="#818cf8"/>
+                            <stop offset="0.75" stop-color="#c084fc"/>
+                            <stop offset="1" stop-color="#f43f5e"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
                 <span class="ai-strip-pulse"></span>
             </div>
             <div class="ai-strip-info">
                 <div class="ai-strip-header">
-                    <strong class="ai-strip-tag">🤖 مستشار الذكاء الاصطناعي التفاعلي (AI Financial Advisor)</strong>
-                    <span class="ai-strip-badge">تحليل فوري لميزانيتك 🧠</span>
+                    <strong class="ai-strip-tag">مستشار الذكاء الاصطناعي التفاعلي</strong>
+                    <span class="ai-strip-badge">
+                        <span class="ai-badge-dot"></span>
+                        <span>تحليل مالي فوري • AI</span>
+                    </span>
                 </div>
                 <p class="ai-strip-msg">
                     اسألني بالعامية: <strong>«هل ميزانيتي تسمح بشراء شاشة بـ 800 شيكل هذا الأسبوع؟»</strong> لأحلل مدخراتك ومصاريفك وأعطيك قراراً دقيقاً ومدروساً.
                 </p>
             </div>
             <div class="ai-strip-action">
-                <button type="button" class="ai-btn-pill" onclick="event.stopPropagation(); openAiAdvisorModal();" title="فتح شات المستشار المالي">اسأل المستشار الآن ◀</button>
+                <button type="button" class="ai-btn-pill" onclick="event.stopPropagation(); openAiAdvisorModal();" title="فتح شات المستشار المالي">
+                    <span>اسأل المستشار الآن</span>
+                    <span class="btn-arrow">◀</span>
+                </button>
             </div>
         </div>
 

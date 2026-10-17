@@ -5,7 +5,19 @@
         <div class="ai-advisor-header">
             <div class="ai-advisor-brand">
                 <div class="ai-avatar-ring">
-                    <span class="ai-avatar-icon">🤖</span>
+                    <svg class="ai-sparkle-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 13.5 7.5 15.5 9.5C17.5 11.5 23 12 23 12C23 12 17.5 12.5 15.5 14.5C13.5 16.5 12 22 12 22C12 22 10.5 16.5 8.5 14.5C6.5 12.5 1 12 1 12C1 12 6.5 11.5 8.5 9.5C10.5 7.5 12 2 12 2Z" fill="url(#aiSparkleGradHeader)" stroke="rgba(255,255,255,0.7)" stroke-width="0.75" stroke-linejoin="round"/>
+                        <path d="M19.5 2C19.5 2 20.2 4.5 21 5.3C21.8 6.1 24 6.5 24 6.5C24 6.5 21.8 6.9 21 7.7C20.2 8.5 19.5 11 19.5 11C19.5 11 18.8 8.5 18 7.7C17.2 6.9 15 6.5 15 6.5C15 6.5 17.2 6.1 18 5.3C18.8 4.5 19.5 2 19.5 2Z" fill="#38bdf8"/>
+                        <path d="M4.5 16C4.5 16 5.1 17.8 5.7 18.4C6.3 19 8 19.3 8 19.3C8 19.3 6.3 19.6 5.7 20.2C5.1 20.8 4.5 22.5 4.5 22.5C4.5 22.5 3.9 20.8 3.3 20.2C2.7 19.6 1 19.3 1 19.3C1 19.3 2.7 19 3.3 18.4C3.9 17.8 4.5 16 4.5 16Z" fill="#f43f5e"/>
+                        <defs>
+                            <linearGradient id="aiSparkleGradHeader" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#38bdf8"/>
+                                <stop offset="0.4" stop-color="#818cf8"/>
+                                <stop offset="0.75" stop-color="#c084fc"/>
+                                <stop offset="1" stop-color="#f43f5e"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
                     <span class="ai-avatar-glow"></span>
                 </div>
                 <div class="ai-brand-text">
@@ -51,10 +63,24 @@
         <div class="ai-chat-body" id="aiAdvisorChatBody">
             <!-- Initial Welcome Message -->
             <div class="ai-chat-msg msg-ai" id="aiWelcomeMsg">
-                <div class="msg-avatar">🤖</div>
+                <div class="msg-avatar">
+                    <svg class="ai-sparkle-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 13.5 7.5 15.5 9.5C17.5 11.5 23 12 23 12C23 12 17.5 12.5 15.5 14.5C13.5 16.5 12 22 12 22C12 22 10.5 16.5 8.5 14.5C6.5 12.5 1 12 1 12C1 12 6.5 11.5 8.5 9.5C10.5 7.5 12 2 12 2Z" fill="url(#aiSparkleGradMsg)" stroke="rgba(255,255,255,0.7)" stroke-width="0.75" stroke-linejoin="round"/>
+                        <path d="M19.5 2C19.5 2 20.2 4.5 21 5.3C21.8 6.1 24 6.5 24 6.5C24 6.5 21.8 6.9 21 7.7C20.2 8.5 19.5 11 19.5 11C19.5 11 18.8 8.5 18 7.7C17.2 6.9 15 6.5 15 6.5C15 6.5 17.2 6.1 18 5.3C18.8 4.5 19.5 2 19.5 2Z" fill="#38bdf8"/>
+                        <path d="M4.5 16C4.5 16 5.1 17.8 5.7 18.4C6.3 19 8 19.3 8 19.3C8 19.3 6.3 19.6 5.7 20.2C5.1 20.8 4.5 22.5 4.5 22.5C4.5 22.5 3.9 20.8 3.3 20.2C2.7 19.6 1 19.3 1 19.3C1 19.3 2.7 19 3.3 18.4C3.9 17.8 4.5 16 4.5 16Z" fill="#f43f5e"/>
+                        <defs>
+                            <linearGradient id="aiSparkleGradMsg" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#38bdf8"/>
+                                <stop offset="0.4" stop-color="#818cf8"/>
+                                <stop offset="0.75" stop-color="#c084fc"/>
+                                <stop offset="1" stop-color="#f43f5e"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
                 <div class="msg-bubble">
                     <div class="msg-content">
-                        مرحباً بك! أنا <strong>مستشارك المالي الذكي</strong> في «مصروفي» 🤖✨<br><br>
+                        مرحباً بك! أنا <strong>مستشارك المالي الذكي</strong> في «مصروفي» ✨<br><br>
                         أنا مطلع لحظياً على كامل أرقام ميزانيتك، مدخراتك، وديونك القادمة. اسألني باللغة العامية بكل أريحية:<br>
                         <em>«هل ميزانيتي تسمح بشراء شاشة بـ 800 شيكل هذا الأسبوع؟»</em><br>
                         أو <em>«كيف وضعي المالي وهل وتيرة صرفي آمنة؟»</em> لأحلل أرقامك وأعطيك القرار الأفضل لبيتك وأسرتك!
@@ -67,7 +93,18 @@
 
             <!-- Typing indicator -->
             <div class="ai-chat-msg msg-ai hidden" id="aiTypingIndicator">
-                <div class="msg-avatar">🤖</div>
+                <div class="msg-avatar">
+                    <svg class="ai-sparkle-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 13.5 7.5 15.5 9.5C17.5 11.5 23 12 23 12C23 12 17.5 12.5 15.5 14.5C13.5 16.5 12 22 12 22C12 22 10.5 16.5 8.5 14.5C6.5 12.5 1 12 1 12C1 12 6.5 11.5 8.5 9.5C10.5 7.5 12 2 12 2Z" fill="url(#aiSparkleGradTyping)" stroke="rgba(255,255,255,0.7)" stroke-width="0.75" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="aiSparkleGradTyping" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#38bdf8"/>
+                                <stop offset="0.5" stop-color="#a855f7"/>
+                                <stop offset="1" stop-color="#ec4899"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
                 <div class="msg-bubble typing-bubble">
                     <div class="typing-dots">
                         <span></span>
@@ -123,9 +160,26 @@
 <!-- Floating Quick Launcher Button (Always visible bottom-left) -->
 <button type="button" class="ai-advisor-floating-btn" id="aiAdvisorFloatingTrigger" onclick="openAiAdvisorModal()" title="تحدث مع مستشارك المالي الذكي (AI Financial Advisor)">
     <div class="ai-floating-inner">
-        <span class="ai-float-bot">🤖</span>
-        <span class="ai-float-text">المستشار الذكي</span>
-        <span class="ai-float-pulse"></span>
+        <div class="ai-float-orb">
+            <svg class="ai-sparkle-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C12 2 13.5 7.5 15.5 9.5C17.5 11.5 23 12 23 12C23 12 17.5 12.5 15.5 14.5C13.5 16.5 12 22 12 22C12 22 10.5 16.5 8.5 14.5C6.5 12.5 1 12 1 12C1 12 6.5 11.5 8.5 9.5C10.5 7.5 12 2 12 2Z" fill="url(#aiSparkleGradFloat)" stroke="rgba(255,255,255,0.7)" stroke-width="0.75" stroke-linejoin="round"/>
+                <path d="M19.5 2C19.5 2 20.2 4.5 21 5.3C21.8 6.1 24 6.5 24 6.5C24 6.5 21.8 6.9 21 7.7C20.2 8.5 19.5 11 19.5 11C19.5 11 18.8 8.5 18 7.7C17.2 6.9 15 6.5 15 6.5C15 6.5 17.2 6.1 18 5.3C18.8 4.5 19.5 2 19.5 2Z" fill="#38bdf8"/>
+                <path d="M4.5 16C4.5 16 5.1 17.8 5.7 18.4C6.3 19 8 19.3 8 19.3C8 19.3 6.3 19.6 5.7 20.2C5.1 20.8 4.5 22.5 4.5 22.5C4.5 22.5 3.9 20.8 3.3 20.2C2.7 19.6 1 19.3 1 19.3C1 19.3 2.7 19 3.3 18.4C3.9 17.8 4.5 16 4.5 16Z" fill="#f43f5e"/>
+                <defs>
+                    <linearGradient id="aiSparkleGradFloat" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#38bdf8"/>
+                        <stop offset="0.4" stop-color="#818cf8"/>
+                        <stop offset="0.75" stop-color="#c084fc"/>
+                        <stop offset="1" stop-color="#f43f5e"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span class="ai-float-beacon"></span>
+        </div>
+        <div class="ai-float-text-wrap">
+            <span class="ai-float-text">المستشار الذكي</span>
+            <span class="ai-pro-badge">AI</span>
+        </div>
     </div>
 </button>
 
@@ -294,7 +348,20 @@
 
         let html = '';
         if (!isUser) {
-            html += `<div class="msg-avatar">🤖</div>`;
+            html += `
+                <div class="msg-avatar">
+                    <svg class="ai-sparkle-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 13.5 7.5 15.5 9.5C17.5 11.5 23 12 23 12C23 12 17.5 12.5 15.5 14.5C13.5 16.5 12 22 12 22C12 22 10.5 16.5 8.5 14.5C6.5 12.5 1 12 1 12C1 12 6.5 11.5 8.5 9.5C10.5 7.5 12 2 12 2Z" fill="url(#aiSparkleGradMsgDyn)" stroke="rgba(255,255,255,0.7)" stroke-width="0.75" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="aiSparkleGradMsgDyn" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#38bdf8"/>
+                                <stop offset="0.5" stop-color="#a855f7"/>
+                                <stop offset="1" stop-color="#ec4899"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+            `;
         }
 
         html += `<div class="msg-bubble">`;
