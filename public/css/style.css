@@ -6028,16 +6028,20 @@ input.flatpickr-custom-input {
 }
 
 .grocery-chip {
-  padding: 0.28rem 0.65rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--card-bg-subtle, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
   color: var(--text-secondary, #cbd5e1);
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .grocery-chip:hover {
@@ -6276,10 +6280,10 @@ input.flatpickr-custom-input {
   background: transparent;
   border: none;
   color: var(--text-muted, #94a3b8);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   cursor: pointer;
-  padding: 0.35rem;
-  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  border-radius: 10px;
   transition: all 0.2s ease;
   line-height: 1;
 }
@@ -6287,6 +6291,7 @@ input.flatpickr-custom-input {
 .grocery-del-btn:hover {
   background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
+  transform: scale(1.1);
 }
 
 .grocery-empty-state {

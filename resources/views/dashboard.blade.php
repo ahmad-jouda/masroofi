@@ -517,16 +517,16 @@
             <!-- Fast Suggestion Chips -->
             <div class="grocery-suggestions-wrap">
                 <span class="grocery-suggestions-label">أغراض شائعة سريعة:</span>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('حليب طازج 🥛', 'dairy', 7)">حليب 🥛</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خبز طازج 🥖', 'groceries', 4)">خبز 🥖</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('كرتونة بيض 🥚', 'dairy', 18)">بيض 🥚</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('جبنة بيضاء 🧀', 'dairy', 12)">جبنة 🧀</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خضار مشكلة 🥗', 'produce', 10)">خضار 🥗</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('منظفات ومحارم 🧼', 'cleaning', 25)">منظفات 🧼</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('دجاج طازج 🍗', 'meat', 35)">دجاج 🍗</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('زيت طعام / زيتون 🫒', 'groceries', 30)">زيت 🫒</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('شاي وسكر ☕', 'groceries', 15)">شاي وسكر ☕</button>
-                <button type="button" class="grocery-chip" onclick="quickFillGrocery('أدوية وعناية 💊', 'pharmacy', 20)">صيدلية 💊</button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('حليب طازج 🥛', 'dairy', 7)"><span>🥛</span> <span>حليب</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خبز طازج 🥖', 'groceries', 4)"><span>🥖</span> <span>خبز</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('كرتونة بيض 🥚', 'dairy', 18)"><span>🥚</span> <span>بيض</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('جبنة بيضاء 🧀', 'dairy', 12)"><span>🧀</span> <span>جبنة</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('خضار مشكلة 🥗', 'produce', 10)"><span>🥗</span> <span>خضار</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('منظفات ومحارم 🧼', 'cleaning', 25)"><span>🧼</span> <span>منظفات</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('دجاج طازج 🍗', 'meat', 35)"><span>🍗</span> <span>دجاج</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('زيت طعام / زيتون 🫒', 'groceries', 30)"><span>🫒</span> <span>زيت</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('شاي وسكر ☕', 'groceries', 15)"><span>☕</span> <span>شاي وسكر</span></button>
+                <button type="button" class="grocery-chip" onclick="quickFillGrocery('أدوية وعناية 💊', 'pharmacy', 20)"><span>💊</span> <span>صيدلية</span></button>
             </div>
         </form>
     </div>
@@ -560,10 +560,10 @@
                     <span class="grocery-cat-badge">{{ $item->category_meta['icon'] ?? '🛒' }}</span>
                     <div class="grocery-text-col">
                         <span class="grocery-item-name">{{ $item->name }}</span>
-                        <div class="grocery-item-meta">
-                            <span>👤 أضافه: <strong class="actor-tag">{{ $item->user?->name ?? 'عضو' }}</strong></span>
+                        <div class="grocery-item-meta" style="direction: rtl; text-align: right;">
+                            <span>👤 أضافه: <bdi class="actor-tag" style="font-weight: 700; color: #38bdf8;">{{ $item->user?->name ?? 'عضو' }}</bdi></span>
                             @if($item->is_bought && $item->buyer)
-                                <span>• ✔️ شطبه: <strong class="buyer-tag">{{ $item->buyer->name }}</strong></span>
+                                <span>• ✔️ شطبه: <bdi class="buyer-tag" style="font-weight: 700; color: #34d399;">{{ $item->buyer->name }}</bdi></span>
                             @endif
                             <span>• {{ $item->created_at->diffForHumans() }}</span>
                         </div>
@@ -4623,9 +4623,15 @@
         const boughtRows = rows.filter(r => r.getAttribute('data-bought') === '1');
 
         let estimatedSum = 0;
-        pendingRows.forEach(r => {
-            estimatedSum += parseFloat(r.getAttribute('data-price') || 0);
-        });
+        if (pendingRows.length > 0) {
+            pendingRows.forEach(r => {
+                estimatedSum += parseFloat(r.getAttribute('data-price') || 0);
+            });
+        } else {
+            boughtRows.forEach(r => {
+                estimatedSum += parseFloat(r.getAttribute('data-price') || 0);
+            });
+        }
 
         const statPending = document.getElementById('groceryStatPending');
         const statBought = document.getElementById('groceryStatBought');
@@ -4649,6 +4655,21 @@
                 navBadge.style.display = 'inline-flex';
             } else {
                 navBadge.style.display = 'none';
+            }
+        }
+
+        if (rows.length === 0) {
+            const list = document.getElementById('groceryItemsList');
+            if (list && !document.getElementById('groceryEmptyState')) {
+                list.innerHTML = `
+                    <div class="grocery-empty-state" id="groceryEmptyState">
+                        <span class="grocery-empty-icon">🛒✨</span>
+                        <div class="grocery-empty-title">قائمة المقاضي مكتملة ولا ينقص البيت شيء!</div>
+                        <div class="grocery-empty-desc">
+                            اكتب أي غرض ناقص (حليب، خضار، منظفات...) وسيظهر فوراً على هاتف شريكتك!
+                        </div>
+                    </div>
+                `;
             }
         }
     };
@@ -4777,8 +4798,8 @@
                 <span class="grocery-cat-badge">${icon}</span>
                 <div class="grocery-text-col">
                     <span class="grocery-item-name">${item.name}</span>
-                    <div class="grocery-item-meta">
-                        <span>👤 أضافه: <strong class="actor-tag">${item.user ? item.user.name : 'أنا'}</strong></span>
+                    <div class="grocery-item-meta" style="direction: rtl; text-align: right;">
+                        <span>👤 أضافه: <bdi class="actor-tag" style="font-weight: 700; color: #38bdf8;">${item.user ? item.user.name : 'أنا'}</bdi></span>
                         <span>• ${item.created_at_human || 'الآن'}</span>
                     </div>
                 </div>
@@ -4856,9 +4877,21 @@
         const row = document.getElementById(`groceryItemRow_${id}`);
         if (!row) return;
 
-        if (!confirm('هل أنت متأكد من حذف هذا الغرض من قائمة المقاضي؟')) {
-            return;
+        let confirmed = false;
+        if (typeof window.showCustomConfirm === 'function') {
+            confirmed = await window.showCustomConfirm({
+                title: 'حذف من قائمة المقاضي',
+                message: 'هل أنت متأكد من رغبتك في حذف هذا الغرض من قائمة المقاضي المشتركة؟',
+                confirmText: 'نعم، حذف الغرض',
+                cancelText: 'تراجع',
+                icon: '🗑️',
+                isDanger: true
+            });
+        } else {
+            confirmed = confirm('هل أنت متأكد من حذف هذا الغرض من قائمة المقاضي؟');
         }
+
+        if (!confirmed) return;
 
         row.remove();
         updateGroceryDOMStats();
@@ -5087,9 +5120,9 @@
                             <span class="grocery-cat-badge">${catIcons[item.category] || '🛒'}</span>
                             <div class="grocery-text-col">
                                 <span class="grocery-item-name">${item.name}</span>
-                                <div class="grocery-item-meta">
-                                    <span>👤 أضافه: <strong class="actor-tag">${item.user ? item.user.name : 'عضو'}</strong></span>
-                                    ${(item.is_bought && item.buyer) ? `<span>• ✔️ شطبه: <strong class="buyer-tag">${item.buyer.name}</strong></span>` : ''}
+                                <div class="grocery-item-meta" style="direction: rtl; text-align: right;">
+                                    <span>👤 أضافه: <bdi class="actor-tag" style="font-weight: 700; color: #38bdf8;">${item.user ? item.user.name : 'عضو'}</bdi></span>
+                                    ${(item.is_bought && item.buyer) ? `<span>• ✔️ شطبه: <bdi class="buyer-tag" style="font-weight: 700; color: #34d399;">${item.buyer.name}</bdi></span>` : ''}
                                 </div>
                             </div>
                         </div>
